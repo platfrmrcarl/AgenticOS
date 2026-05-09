@@ -2,7 +2,8 @@ export async function readSSEStream(
   response: Response,
   onChunk: (data: Record<string, unknown>) => void
 ): Promise<void> {
-  const reader = response.body!.getReader();
+  if (!response.body) return;
+  const reader = response.body.getReader();
   const dec = new TextDecoder();
   let buf = "";
   while (true) {
