@@ -18,7 +18,7 @@ export default function LoginPage() {
     setError("");
     const result = await signIn("credentials", { email, password, redirect: false });
     setLoading(false);
-    if (result?.error) {
+    if (!result || result.error) {
       setError("Invalid email or password");
     } else {
       router.push("/dashboard");
@@ -34,15 +34,19 @@ export default function LoginPage() {
         <h1 className="text-2xl font-bold text-white mb-8">Sign in</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
+            id="email"
             type="email"
             placeholder="Email"
+            aria-label="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
           <Input
+            id="password"
             type="password"
             placeholder="Password"
+            aria-label="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
