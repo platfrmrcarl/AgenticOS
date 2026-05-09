@@ -1,12 +1,12 @@
 def build_deliverable_prompt(domains: list[dict], skills: list[dict]) -> str:
     domain_list = "\n".join(
-        f"- {d['name']}: {d.get('successVision', 'not specified')}" for d in domains
+        f"- {d.get('name', '')}: {d.get('successVision', 'not specified')}" for d in domains
     )
     skill_lines = []
     for domain_entry in skills:
-        domain_name = domain_entry["domainName"]
+        domain_name = domain_entry.get("domainName", "unknown")
         for skill in domain_entry.get("skills", []):
-            skill_lines.append(f"  - [{domain_name}] {skill['name']}: {skill['description']}")
+            skill_lines.append(f"  - [{domain_name}] {skill.get('name', '')}: {skill.get('description', '')}")
     skill_list = "\n".join(skill_lines)
     return (
         "You are in Phase 5: Deliverable Output of the Agentic OS setup.\n\n"
