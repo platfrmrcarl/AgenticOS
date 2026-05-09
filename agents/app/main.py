@@ -1,10 +1,13 @@
 import json
+import logging
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from app.models import RunRequest
 from app.session import session_store
 from app.agent import stream_agent_response
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="AgenticOS Agents Service")
 
@@ -62,8 +65,8 @@ async def run_guide(request: RunRequest):
                     data = json.loads(chunk[6:])
                     if data.get("type") == "text":
                         full_response += data.get("content", "")
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.warning("Failed to parse SSE chunk: %s", exc)
         if full_response:
             session_store.add_message(
                 request.session_id,

@@ -3,7 +3,8 @@ import json
 from pathlib import Path
 from anthropic import AsyncAnthropic
 
-client = AsyncAnthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+_api_key = os.environ.get("ANTHROPIC_API_KEY")
+client = AsyncAnthropic(api_key=_api_key) if _api_key else None
 DESIGN_MD_PATH = Path(__file__).parent.parent.parent / "design.md"
 
 
@@ -34,8 +35,14 @@ def _load_system_prompt() -> str:
 SYSTEM_PROMPT = _load_system_prompt()
 
 
+def _get_client() -> AsyncAnthropic:
+    if client is None:
+        raise RuntimeError("ANTHROPIC_API_KEY environment variable is not set")
+    return client
+
+
 async def stream_agent_response(messages: list[dict]):
-    async with client.messages.stream(
+    async with _get_client().messages.stream(
         model="claude-sonnet-4-6",
         max_tokens=4096,
         system=SYSTEM_PROMPT,
