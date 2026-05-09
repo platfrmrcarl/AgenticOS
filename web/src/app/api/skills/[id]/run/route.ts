@@ -7,7 +7,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const { input } = await req.json();
+  let input: string;
+  try {
+    ({ input } = await req.json());
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
 
   const run = await prisma.skillRun.create({
     data: {
@@ -19,20 +24,26 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   });
 
   const agentsUrl = process.env.AGENTS_SERVICE_URL ?? "http://localhost:8000";
-  const sessionResp = await fetch(`${agentsUrl}/sessions`, { method: "POST" });
-  const { session_id } = await sessionResp.json() as { session_id: string };
-
-  const upstream = await fetch(`${agentsUrl}/run/agentic-os-guide`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ session_id, message: input }),
-  });
+  let upstream: Response;
+  try {
+    const sessionResp = await fetch(`${agentsUrl}/sessions`, { method: "POST" });
+    if (!sessionResp.ok) throw new Error("Failed to create agent session");
+    const { session_id } = await sessionResp.json() as { session_id: string };
+    upstream = await fetch(`${agentsUrl}/run/agentic-os-guide`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id, message: input }),
+    });
+    if (!upstream.ok || !upstream.body) throw new Error("Upstream error");
+  } catch {
+    await prisma.skillRun.update({ where: { id: run.id }, data: { status: "FAILED", endedAt: new Date() } });
+    return NextResponse.json({ error: "Agents service unavailable" }, { status: 502 });
+  }
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
-      if (!upstream.body) { controller.close(); return; }
-      const reader = upstream.body.getReader();
+      const reader = upstream.body!.getReader();
       let output = "";
       while (true) {
         const { done, value } = await reader.read();
@@ -41,10 +52,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         output += text;
         controller.enqueue(encoder.encode(text));
       }
-      await prisma.skillRun.update({
-        where: { id: run.id },
-        data: { status: "COMPLETED", output, endedAt: new Date() },
-      });
+      try {
+        await prisma.skillRun.update({
+          where: { id: run.id },
+          data: { status: "COMPLETED", output, endedAt: new Date() },
+        });
+      } catch {
+        await prisma.skillRun.update({ where: { id: run.id }, data: { status: "FAILED", endedAt: new Date() } });
+      }
       controller.close();
     },
   });

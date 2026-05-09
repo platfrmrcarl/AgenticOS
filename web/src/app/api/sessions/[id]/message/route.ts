@@ -7,7 +7,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const { message } = await req.json();
+  let message: string;
+  try {
+    ({ message } = await req.json());
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
 
   const chatSession = await prisma.chatSession.findUnique({ where: { id, userId: session.user.id } });
   if (!chatSession) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -17,11 +22,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   await prisma.chatSession.update({ where: { id }, data: { messages } });
 
   const agentsUrl = process.env.AGENTS_SERVICE_URL ?? "http://localhost:8000";
-  const upstream = await fetch(`${agentsUrl}/run/agentic-os-guide`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-User-ID": session.user.id },
-    body: JSON.stringify({ session_id: id, message }),
-  });
+  let upstream: Response;
+  try {
+    upstream = await fetch(`${agentsUrl}/run/agentic-os-guide`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-User-ID": session.user.id },
+      body: JSON.stringify({ session_id: id, message }),
+    });
+  } catch {
+    return NextResponse.json({ error: "Agents service unavailable" }, { status: 502 });
+  }
+
+  if (!upstream.ok || !upstream.body) {
+    return NextResponse.json({ error: "Upstream error" }, { status: 502 });
+  }
 
   return new NextResponse(upstream.body, {
     status: upstream.status,
