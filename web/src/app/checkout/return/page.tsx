@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getStripe } from "@/lib/stripe";
 
 export default async function CheckoutReturnPage({
   searchParams,
@@ -18,11 +19,31 @@ export default async function CheckoutReturnPage({
     );
   }
 
+  let paymentStatus: string | null = null;
+  try {
+    const stripe = getStripe();
+    const stripeSession = await stripe.checkout.sessions.retrieve(session_id);
+    paymentStatus = stripeSession.payment_status;
+  } catch {
+    paymentStatus = null;
+  }
+
+  if (!paymentStatus || paymentStatus === "unpaid") {
+    return (
+      <main className="min-h-screen bg-background flex flex-col items-center justify-center">
+        <h1 className="text-2xl font-bold text-foreground">Payment not confirmed</h1>
+        <p className="text-muted-foreground mt-2">Please try again or contact support.</p>
+        <Link href="/" className="mt-4 text-primary hover:underline">Return home</Link>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
       <div className="text-center max-w-md">
         <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
           <svg
+            aria-hidden="true"
             className="w-8 h-8 text-primary"
             fill="none"
             viewBox="0 0 24 24"

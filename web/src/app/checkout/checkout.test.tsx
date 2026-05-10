@@ -1,5 +1,18 @@
 import { describe, it, expect, vi } from "vitest";
 
+vi.mock("stripe", () => {
+  const MockStripe = vi.fn().mockImplementation(() => ({
+    checkout: { sessions: { retrieve: vi.fn() } },
+  }));
+  return { default: MockStripe };
+});
+
+vi.mock("@/lib/stripe", () => ({
+  getStripe: vi.fn(() => ({
+    checkout: { sessions: { retrieve: vi.fn().mockResolvedValue({ payment_status: "paid" }) } },
+  })),
+}));
+
 vi.mock("@stripe/react-stripe-js", () => ({
   EmbeddedCheckoutProvider: vi.fn(),
   EmbeddedCheckout: vi.fn(),
@@ -19,6 +32,10 @@ vi.mock("@/auth", () => ({
 
 vi.mock("next/navigation", () => ({
   redirect: vi.fn(),
+}));
+
+vi.mock("next/link", () => ({
+  default: vi.fn(),
 }));
 
 describe("CheckoutForm module", () => {
