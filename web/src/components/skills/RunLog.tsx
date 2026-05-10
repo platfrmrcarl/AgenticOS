@@ -32,7 +32,7 @@ export function RunLog({ runs }: RunLogProps) {
               <div className="flex items-center justify-between">
                 <Badge variant={statusVariant(run.status)}>{run.status}</Badge>
                 <span className="text-gray-600 text-[10px] font-mono">
-                  {run.startedAt.toLocaleTimeString()}
+                  {run.startedAt ? new Date(run.startedAt).toLocaleTimeString() : "--"}
                 </span>
               </div>
             </div>

@@ -39,14 +39,16 @@ export function SkillRunner({ skill, onRunComplete }: SkillRunnerProps) {
       return;
     }
 
-    await readSSEStream(resp, (chunk) => {
-      if (chunk.type === "text") {
-        setOutput((prev) => prev + (chunk.content as string));
-      }
-    });
-
-    setRunning(false);
-    onRunComplete();
+    try {
+      await readSSEStream(resp, (chunk) => {
+        if (chunk.type === "text") {
+          setOutput((prev) => prev + (chunk.content as string));
+        }
+      });
+      onRunComplete();
+    } finally {
+      setRunning(false);
+    }
   }
 
   return (

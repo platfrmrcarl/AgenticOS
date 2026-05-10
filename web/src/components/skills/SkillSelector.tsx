@@ -24,7 +24,7 @@ export function SkillSelector({ skills, selectedId, onSelect }: SkillSelectorPro
       <select
         className="bg-gray-900 border border-gray-700 text-gray-300 text-sm font-mono px-3 py-2 focus:outline-none focus:border-orange-500 min-w-[300px]"
         value={selectedId ?? ""}
-        onChange={(e) => onSelect(e.target.value)}
+        onChange={(e) => { if (e.target.value) onSelect(e.target.value); }}
       >
         <option value="">— Select a skill —</option>
         {Object.entries(grouped).map(([domain, domainSkills]) => (

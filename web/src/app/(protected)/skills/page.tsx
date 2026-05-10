@@ -23,6 +23,7 @@ export default function SkillsPage() {
       fetch("/api/skills"),
       fetch("/api/runs"),
     ]);
+    if (!skillsResp.ok || !runsResp.ok) return;
     setSkills(await skillsResp.json() as SkillWithDomain[]);
     setRuns(await runsResp.json() as RunWithSkill[]);
   }, []);
