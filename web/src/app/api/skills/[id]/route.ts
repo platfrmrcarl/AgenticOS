@@ -8,7 +8,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const { id } = await params;
   const body = await req.json();
-  const skill = await prisma.skill.update({ where: { id, userId: session.user.id }, data: body });
+  const owned = await prisma.skill.findFirst({ where: { id, userId: session.user.id } });
+  if (!owned) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const skill = await prisma.skill.update({ where: { id }, data: body });
   return NextResponse.json(skill);
 }
 
@@ -17,6 +19,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  await prisma.skill.delete({ where: { id, userId: session.user.id } });
+  const owned = await prisma.skill.findFirst({ where: { id, userId: session.user.id } });
+  if (!owned) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  await prisma.skill.delete({ where: { id } });
   return NextResponse.json({ deleted: id });
 }

@@ -14,7 +14,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const chatSession = await prisma.chatSession.findUnique({ where: { id, userId: session.user.id } });
+  const chatSession = await prisma.chatSession.findFirst({ where: { id, userId: session.user.id } });
   if (!chatSession) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const messages = chatSession.messages as Array<{ role: string; content: string }>;
