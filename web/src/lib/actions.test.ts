@@ -46,6 +46,7 @@ describe("createEmbeddedCheckoutSession", () => {
   });
 
   it("returns clientSecret when authenticated", async () => {
+    vi.stubEnv("AUTH_URL", "https://test.example.com");
     mockAuth.mockResolvedValue({
       user: { email: "test@example.com" },
     } as never);
@@ -68,12 +69,13 @@ describe("createEmbeddedCheckoutSession", () => {
       ui_mode: "embedded",
       mode: "subscription",
       line_items: [{ price: "price_123", quantity: 1 }],
-      return_url: expect.stringContaining("/checkout/return?session_id={CHECKOUT_SESSION_ID}"),
+      return_url: expect.stringContaining("https://test.example.com/checkout/return"),
       customer_email: "test@example.com",
     });
   });
 
   it("throws when Stripe returns no client_secret", async () => {
+    vi.stubEnv("AUTH_URL", "https://test.example.com");
     mockAuth.mockResolvedValue({
       user: { email: "test@example.com" },
     } as never);
@@ -116,6 +118,12 @@ describe("cancelSubscription", () => {
       stripeSubscriptionId: null,
     } as never);
 
+    await expect(cancelSubscription()).rejects.toThrow("No active subscription");
+  });
+
+  it("throws when user not found in database", async () => {
+    mockAuth.mockResolvedValue({ user: { email: "test@example.com" } });
+    (prisma.user.findUnique as any).mockResolvedValue(null);
     await expect(cancelSubscription()).rejects.toThrow("No active subscription");
   });
 

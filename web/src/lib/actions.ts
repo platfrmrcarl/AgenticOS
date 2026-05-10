@@ -10,12 +10,19 @@ export async function createEmbeddedCheckoutSession(
   const session = await auth();
   if (!session?.user?.email) throw new Error("Not authenticated");
 
+  const authUrl = process.env.AUTH_URL;
+  if (!authUrl) throw new Error("AUTH_URL is not configured");
+
+  if (!priceId || !priceId.startsWith("price_")) {
+    throw new Error("Invalid price ID");
+  }
+
   const stripe = getStripe();
   const checkoutSession = await stripe.checkout.sessions.create({
     ui_mode: "embedded",
     mode: "subscription",
     line_items: [{ price: priceId, quantity: 1 }],
-    return_url: `${process.env.AUTH_URL}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
+    return_url: `${authUrl}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
     customer_email: session.user.email,
   });
 
@@ -39,12 +46,17 @@ export async function cancelSubscription(): Promise<void> {
   const stripe = getStripe();
   await stripe.subscriptions.cancel(user.stripeSubscriptionId);
 
-  await prisma.user.update({
-    where: { email: session.user.email },
-    data: {
-      isSubscribed: false,
-      stripeSubscriptionId: null,
-      subscriptionPlan: null,
-    },
-  });
+  try {
+    await prisma.user.update({
+      where: { email: session.user.email },
+      data: {
+        isSubscribed: false,
+        stripeSubscriptionId: null,
+        subscriptionPlan: null,
+      },
+    });
+  } catch (err) {
+    // Stripe cancel succeeded; DB update failed. Webhook handler will reconcile on next event.
+    console.error("Failed to update user after subscription cancel:", err);
+  }
 }
