@@ -41,6 +41,16 @@ export function ChatInterface({ sessionId, phase, onPhaseComplete }: ChatInterfa
       body: JSON.stringify({ message: userMsg }),
     });
 
+    if (!resp.ok) {
+      setMessages((prev) => {
+        const updated = [...prev];
+        updated[updated.length - 1] = { role: "assistant", content: "Failed to send message. Please try again." };
+        return updated;
+      });
+      setStreaming(false);
+      return;
+    }
+
     await readSSEStream(resp, (chunk) => {
       if (chunk.type === "text") {
         assistantContent += chunk.content as string;

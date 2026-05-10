@@ -6,22 +6,36 @@ import { ChatInterface } from "@/components/setup/ChatInterface";
 export default function SetupPage() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [phase, setPhase] = useState(1);
+  const [initError, setInitError] = useState(false);
 
   useEffect(() => {
     async function initSession() {
-      const resp = await fetch("/api/sessions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phase: 1 }),
-      });
-      const data = await resp.json() as { id: string };
-      setSessionId(data.id);
+      try {
+        const resp = await fetch("/api/sessions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phase: 1 }),
+        });
+        if (!resp.ok) throw new Error("Failed to create session");
+        const data = await resp.json() as { id: string };
+        setSessionId(data.id);
+      } catch {
+        setInitError(true);
+      }
     }
     initSession();
   }, []);
 
   function handlePhaseComplete(completedPhase: number, _data: Record<string, unknown>) {
     if (completedPhase < 5) setPhase(completedPhase + 1);
+  }
+
+  if (initError) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-red-400 font-mono text-sm">Failed to initialize session. Please refresh.</div>
+      </div>
+    );
   }
 
   if (!sessionId) {

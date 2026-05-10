@@ -7,7 +7,7 @@ interface DeliverableRendererProps {
 }
 
 export function DeliverableRenderer({ content }: DeliverableRendererProps) {
-  const codeBlockRegex = /```[\w]*\n([\s\S]*?)```/g;
+  const codeBlockRegex = /```([\w]*)\n([\s\S]*?)```/g;
   const parts: Array<{ type: "text" | "code"; content: string; lang?: string }> = [];
   let lastIndex = 0;
   let match;
@@ -16,8 +16,7 @@ export function DeliverableRenderer({ content }: DeliverableRendererProps) {
     if (match.index > lastIndex) {
       parts.push({ type: "text", content: content.slice(lastIndex, match.index) });
     }
-    const langMatch = content.slice(match.index).match(/```([\w]*)\n/);
-    parts.push({ type: "code", content: match[1], lang: langMatch?.[1] });
+    parts.push({ type: "code", content: match[2], lang: match[1] || undefined });
     lastIndex = match.index + match[0].length;
   }
 
