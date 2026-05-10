@@ -6,10 +6,20 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { authConfig } from "./auth.config";
 
+const useSecureCookies = (process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? "").startsWith("https://");
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(prisma),
   trustHost: true,
+  cookies: {
+    sessionToken: { options: { httpOnly: true, sameSite: "lax", path: "/", secure: useSecureCookies } },
+    callbackUrl: { options: { sameSite: "lax", path: "/", secure: useSecureCookies } },
+    csrfToken: { options: { httpOnly: true, sameSite: "lax", path: "/", secure: useSecureCookies } },
+    pkceCodeVerifier: { options: { httpOnly: true, sameSite: "lax", path: "/", secure: useSecureCookies } },
+    state: { options: { httpOnly: true, sameSite: "lax", path: "/", secure: useSecureCookies } },
+    nonce: { options: { httpOnly: true, sameSite: "lax", path: "/", secure: useSecureCookies } },
+  },
   providers: [
     ...authConfig.providers,
     Google({

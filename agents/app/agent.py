@@ -3,9 +3,26 @@ import json
 from pathlib import Path
 from anthropic import AsyncAnthropic
 
-_api_key = os.environ.get("ANTHROPIC_API_KEY")
-client = AsyncAnthropic(api_key=_api_key) if _api_key else None
 DESIGN_MD_PATH = Path(__file__).parent.parent.parent / "design.md"
+
+
+def _make_client() -> AsyncAnthropic:
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if api_key:
+        return AsyncAnthropic(api_key=api_key)
+    creds_path = Path.home() / ".claude" / ".credentials.json"
+    if creds_path.exists():
+        try:
+            creds = json.loads(creds_path.read_text())
+            token = creds.get("claudeAiOauth", {}).get("accessToken")
+            if token:
+                return AsyncAnthropic(auth_token=token)
+        except Exception:
+            pass
+    raise RuntimeError("No Anthropic credentials found")
+
+
+client = _make_client()
 
 
 def _load_system_prompt() -> str:
@@ -36,8 +53,6 @@ SYSTEM_PROMPT = _load_system_prompt()
 
 
 def _get_client() -> AsyncAnthropic:
-    if client is None:
-        raise RuntimeError("ANTHROPIC_API_KEY environment variable is not set")
     return client
 
 

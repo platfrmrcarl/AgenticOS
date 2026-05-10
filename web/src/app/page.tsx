@@ -1,61 +1,6 @@
 import Link from "next/link";
 import { getStripe } from "@/lib/stripe";
-
-// ─── Plan fetching ────────────────────────────────────────────────────────────
-
-interface StripePlan {
-  id: string;
-  name: string;
-  price: number;
-  interval: string;
-  features: string[];
-  description?: string;
-}
-
-const FALLBACK_PLANS: StripePlan[] = [
-  {
-    id: "starter",
-    name: "Starter",
-    price: 49,
-    interval: "month",
-    features: [
-      "5 automated workflows",
-      "Basic reporting",
-      "Email support",
-      "1 integration",
-    ],
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    price: 149,
-    interval: "month",
-    features: [
-      "Unlimited workflows",
-      "Advanced analytics",
-      "Priority support",
-      "All integrations",
-      "Custom scheduling",
-    ],
-  },
-  {
-    id: "enterprise",
-    name: "Scale",
-    price: 399,
-    interval: "month",
-    description: "For teams and enterprises running complex agentic operations",
-    features: [
-      "Everything in Pro",
-      "Multi-agent orchestration",
-      "Custom integrations",
-      "SLA guarantee",
-      "Dedicated success manager",
-    ],
-  },
-];
-
-// Exported for testing only
-export const FALLBACK_PLANS_TEST = FALLBACK_PLANS;
+import { FALLBACK_PLANS, type StripePlan } from "@/lib/plans";
 
 async function getPlans(): Promise<StripePlan[]> {
   try {
@@ -470,7 +415,7 @@ export default async function HomePage() {
                   ))}
                 </ul>
                 <Link
-                  href={plan.priceId ? `/checkout?priceId=${plan.priceId}` : "/api/auth/signin"}
+                  href={plan.id.startsWith("price_") ? `/checkout?priceId=${plan.id}` : "/api/auth/signin"}
                   className={`block text-center py-3 rounded-xl font-semibold transition-colors ${
                     i === 1
                       ? "bg-primary text-primary-foreground hover:bg-primary/90"

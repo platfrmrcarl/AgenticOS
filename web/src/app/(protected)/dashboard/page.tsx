@@ -36,7 +36,7 @@ export default async function DashboardPage() {
   }));
 
   const todayRuns = runs.filter(
-    (r) => r.startedAt.toISOString().slice(0, 10) === new Date().toISOString().slice(0, 10)
+    (r: (typeof runs)[0]) => r.startedAt.toISOString().slice(0, 10) === new Date().toISOString().slice(0, 10)
   ).length;
 
   const stats = [

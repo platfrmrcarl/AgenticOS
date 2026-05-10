@@ -16,6 +16,17 @@ services:
       timeout: 5s
       retries: 10
 
+  agents:
+    build:
+      context: ./agents
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    volumes:
+      - ${HOME}/.claude/.credentials.json:/root/.claude/.credentials.json:ro
+
   web:
     build:
       context: ./web
@@ -28,7 +39,7 @@ services:
       AUTH_URL: http://localhost:3000
       NEXTAUTH_SECRET: dev-secret-change-in-production
       NEXTAUTH_URL: http://localhost:3000
-      AGENTS_SERVICE_URL: http://localhost:8000
+      AGENTS_SERVICE_URL: http://agents:8000
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}

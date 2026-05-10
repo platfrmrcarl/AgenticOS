@@ -30,24 +30,20 @@ describe("page module", () => {
 
 // ─── FALLBACK_PLANS behaviour ─────────────────────────────────────────────────
 describe("FALLBACK_PLANS (via getPlans fallback)", () => {
-  beforeEach(() => {
-    vi.resetModules();
-  });
-
-  it("exports FALLBACK_PLANS_TEST with 3 plans", async () => {
-    const { FALLBACK_PLANS_TEST } = await import("./page");
-    expect(Array.isArray(FALLBACK_PLANS_TEST)).toBe(true);
-    expect(FALLBACK_PLANS_TEST).toHaveLength(3);
+  it("exports FALLBACK_PLANS with 3 plans", async () => {
+    const { FALLBACK_PLANS } = await import("@/lib/plans");
+    expect(Array.isArray(FALLBACK_PLANS)).toBe(true);
+    expect(FALLBACK_PLANS).toHaveLength(3);
   });
 
   it("has 'pro' plan at index 1 (middle / most popular)", async () => {
-    const { FALLBACK_PLANS_TEST } = await import("./page");
-    expect(FALLBACK_PLANS_TEST[1].name).toBe("Pro");
+    const { FALLBACK_PLANS } = await import("@/lib/plans");
+    expect(FALLBACK_PLANS[1].name).toBe("Pro");
   });
 
   it("includes starter, pro, and scale plans", async () => {
-    const { FALLBACK_PLANS_TEST } = await import("./page");
-    const names = FALLBACK_PLANS_TEST.map((p: { name: string }) => p.name);
+    const { FALLBACK_PLANS } = await import("@/lib/plans");
+    const names = FALLBACK_PLANS.map((p: { name: string }) => p.name);
     expect(names).toContain("Starter");
     expect(names).toContain("Pro");
     expect(names).toContain("Scale");
