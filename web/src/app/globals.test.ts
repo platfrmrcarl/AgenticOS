@@ -1,20 +1,22 @@
 import { readFileSync } from "fs";
-import { join } from "path";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 import { describe, it, expect } from "vitest";
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const css = readFileSync(join(__dirname, "globals.css"), "utf-8");
+
 describe("globals.css OKLch theme", () => {
-  const css = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf-8");
-
-  it("uses OKLch primary blue", () => {
-    expect(css).toContain("oklch(62.31% 0.188 259.81)");
+  it("assigns primary blue to --primary in :root", () => {
+    expect(css).toMatch(/--primary:\s*oklch\(0\.6231 0\.188 259\.81\)/);
   });
 
-  it("uses white background", () => {
-    expect(css).toContain("--background: oklch(1 0 0)");
+  it("assigns white background to --background in light mode", () => {
+    expect(css).toMatch(/--background:\s*oklch\(1 0 0\)/);
   });
 
-  it("does not use dark orange background", () => {
-    expect(css).not.toContain("--background: #0a0a0a");
+  it("does not use legacy hex background", () => {
+    expect(css).not.toMatch(/--background:\s*#[0-9a-fA-F]/);
   });
 
   it("has @theme inline block", () => {
@@ -22,14 +24,14 @@ describe("globals.css OKLch theme", () => {
   });
 
   it("has sw-pulse keyframe", () => {
-    expect(css).toContain("sw-pulse");
+    expect(css).toMatch(/@keyframes sw-pulse/);
   });
 
   it("has sw-flow keyframe", () => {
-    expect(css).toContain("sw-flow");
+    expect(css).toMatch(/@keyframes sw-flow/);
   });
 
   it("has sw-core keyframe", () => {
-    expect(css).toContain("sw-core");
+    expect(css).toMatch(/@keyframes sw-core/);
   });
 });
