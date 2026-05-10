@@ -20,6 +20,10 @@ model User {
   skills        Skill[]
   skillRuns     SkillRun[]
   chatSessions  ChatSession[]
+  isSubscribed         Boolean   @default(false)
+  subscriptionPlan     String?
+  stripeSubscriptionId String?
+  stripeCustomerId     String?
   createdAt     DateTime  @default(now())
 }
 
@@ -135,4 +139,9 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model ProcessedWebhookEvent {
+  id          String   @id
+  processedAt DateTime @default(now())
 }
