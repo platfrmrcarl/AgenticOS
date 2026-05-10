@@ -24,6 +24,8 @@ services:
       - "3000:3000"
     environment:
       DATABASE_URL: postgresql://postgres:Lakers123@postgres:5432/agenticos
+      AUTH_SECRET: dev-secret-change-in-production
+      AUTH_URL: http://localhost:3000
       NEXTAUTH_SECRET: dev-secret-change-in-production
       NEXTAUTH_URL: http://localhost:3000
       AGENTS_SERVICE_URL: http://localhost:8000
