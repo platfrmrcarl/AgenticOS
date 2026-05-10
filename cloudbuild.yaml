@@ -129,7 +129,7 @@ steps:
         )
         SELECT count(*) AS repaired FROM repair;
         ENDSQL
-        npx prisma db execute --file /tmp/repair.sql --url "$DATABASE_URL" 2>/dev/null || true
+        npx prisma db execute --file /tmp/repair.sql --url "$$DATABASE_URL" 2>/dev/null || true
         npx prisma migrate deploy
 
   - name: gcr.io/cloud-builders/docker
