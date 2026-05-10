@@ -56,6 +56,22 @@ export default function LoginPage() {
             {loading ? "Signing in..." : "Sign in →"}
           </Button>
         </form>
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-800" />
+          </div>
+          <div className="relative flex justify-center text-xs">
+            <span className="bg-[#0a0a0a] px-2 text-gray-500 font-mono">or</span>
+          </div>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full border-gray-800 text-white hover:bg-gray-900"
+          onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+        >
+          Continue with Google
+        </Button>
       </div>
     </main>
   );
