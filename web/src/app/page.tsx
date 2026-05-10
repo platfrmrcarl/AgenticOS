@@ -195,22 +195,34 @@ export default async function HomePage() {
     <div className="min-h-screen bg-background text-foreground">
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between relative">
           <span className="text-xl font-bold text-primary">AgenticOS</span>
-          <div className="flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-6 absolute left-1/2 -translate-x-1/2">
+            <Link
+              href="#how-it-works"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              How it Works
+            </Link>
+            <Link
+              href="#features"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Features
+            </Link>
             <Link
               href="#pricing"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Pricing
             </Link>
-            <Link
-              href="/api/auth/signin"
-              className="text-sm px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-            >
-              Get Started
-            </Link>
           </div>
+          <Link
+            href="/api/auth/signin"
+            className="text-sm px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+          >
+            Get Started
+          </Link>
         </div>
       </nav>
 
@@ -349,7 +361,7 @@ export default async function HomePage() {
       </section>
 
       {/* Features */}
-      <section className="py-20 px-4 bg-muted/30">
+      <section id="features" className="py-20 px-4 bg-muted/30">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12">
             Everything your business needs
