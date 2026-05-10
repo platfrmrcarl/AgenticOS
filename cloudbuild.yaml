@@ -116,7 +116,9 @@ steps:
         mkdir -p /cloudsql
         cloud-sql-proxy --unix-socket=/cloudsql $_SQL_INSTANCE &
         sleep 3
-        cd /workspace/web && npm install --no-save prisma && npx prisma migrate deploy
+        cd /workspace/web && npm install --no-save prisma \
+          && npx prisma migrate resolve --rolled-back 20260510000000_add_stripe_fields 2>/dev/null || true \
+          && npx prisma migrate deploy
 
   - name: gcr.io/cloud-builders/docker
     id: build-web
