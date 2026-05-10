@@ -116,8 +116,7 @@ function AnimatedSwarm() {
     <svg
       viewBox="0 0 520 520"
       className="w-full max-w-sm mx-auto"
-      aria-label="AgenticOS agent network visualization"
-      role="img"
+      aria-hidden="true"
     >
       <defs>
         <radialGradient id="glow" cx="50%" cy="50%" r="50%">
@@ -471,7 +470,7 @@ export default async function HomePage() {
                   ))}
                 </ul>
                 <Link
-                  href={`/checkout?priceId=${plan.id}`}
+                  href={plan.priceId ? `/checkout?priceId=${plan.priceId}` : "/api/auth/signin"}
                   className={`block text-center py-3 rounded-xl font-semibold transition-colors ${
                     i === 1
                       ? "bg-primary text-primary-foreground hover:bg-primary/90"
@@ -512,9 +511,9 @@ export default async function HomePage() {
             © 2026 AgenticOS. All rights reserved.
           </span>
           <div className="flex gap-6 text-sm text-muted-foreground">
-            <Link href="#" className="hover:text-foreground transition-colors">Privacy</Link>
-            <Link href="#" className="hover:text-foreground transition-colors">Terms</Link>
-            <Link href="#" className="hover:text-foreground transition-colors">Contact</Link>
+            <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
+            <Link href="/contact" className="hover:text-foreground transition-colors">Contact</Link>
           </div>
         </div>
       </footer>
