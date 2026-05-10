@@ -216,32 +216,33 @@ export default async function HomePage() {
 
       {/* Hero */}
       <section className="pt-32 pb-20 px-4">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
-          <div>
-            <h1 className="text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-tight">
-              Running a business without full automation is{" "}
-              <span className="text-primary">living in the past</span>
-            </h1>
-            <p className="mt-6 text-xl text-muted-foreground">
-              AgenticOS creates custom agentic workflows that handle the
-              repetitive work so you can focus on what matters.
-            </p>
-            <div className="mt-10 flex flex-wrap gap-4">
-              <Link
-                href="#pricing"
-                className="px-8 py-4 bg-primary text-primary-foreground rounded-xl font-semibold text-lg hover:bg-primary/90 transition-colors"
-              >
-                Start Automating
-              </Link>
-              <Link
-                href="#how-it-works"
-                className="px-8 py-4 border border-border text-foreground rounded-xl font-semibold text-lg hover:bg-muted transition-colors"
-              >
-                See How It Works
-              </Link>
-            </div>
+        <div className="max-w-4xl mx-auto flex flex-col items-center text-center">
+          <h1 className="text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-tight">
+            Run your business operations that you care about{" "}
+            <span className="text-primary">Agentically</span>, and get notified
+            when you need to step in.
+          </h1>
+          <p className="mt-6 text-xl text-muted-foreground max-w-2xl">
+            AgenticOS creates custom agentic workflows that handle the
+            repetitive work so you can focus on what matters.
+          </p>
+          <div className="mt-10 w-full max-w-sm">
+            <AnimatedSwarm />
           </div>
-          <AnimatedSwarm />
+          <div className="mt-10 flex flex-wrap justify-center gap-4">
+            <Link
+              href="#pricing"
+              className="px-8 py-4 bg-primary text-primary-foreground rounded-xl font-semibold text-lg hover:bg-primary/90 transition-colors"
+            >
+              Start Automating
+            </Link>
+            <Link
+              href="#how-it-works"
+              className="px-8 py-4 border border-border text-foreground rounded-xl font-semibold text-lg hover:bg-muted transition-colors"
+            >
+              See How It Works
+            </Link>
+          </div>
         </div>
       </section>
 
