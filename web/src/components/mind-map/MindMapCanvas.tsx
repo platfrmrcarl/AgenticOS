@@ -1,5 +1,5 @@
 "use client";
-import ReactFlow, { Background, Controls, MiniMap, useNodesState, useEdgesState } from "reactflow";
+import ReactFlow, { Background, Controls, MiniMap, useNodesState, useEdgesState, type Edge, type Node } from "reactflow";
 import "reactflow/dist/style.css";
 import { SkillNode } from "./SkillNode";
 import { DomainNode } from "./DomainNode";
@@ -49,7 +49,7 @@ export function MindMapCanvas({ skills, domains, userName }: MindMapCanvasProps)
   );
 }
 
-function buildNodes(skills: SkillWithDomain[], domains: Domain[], userName: string) {
+function buildNodes(skills: SkillWithDomain[], domains: Domain[], userName: string): Node[] {
   const nodes = [];
   const centerX = 400;
   const centerY = 300;
@@ -98,7 +98,7 @@ function buildNodes(skills: SkillWithDomain[], domains: Domain[], userName: stri
   return nodes;
 }
 
-function buildEdges(skills: SkillWithDomain[], domains: Domain[]) {
+function buildEdges(skills: SkillWithDomain[], domains: Domain[]): Edge[] {
   const edges = [];
   edges.push({ id: "root-cc", source: "root", target: "claude-code", style: { stroke: "#f97316", strokeWidth: 2 } });
   domains.forEach((domain) => {

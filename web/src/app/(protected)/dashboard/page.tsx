@@ -1,13 +1,15 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { MindMapCanvas } from "@/components/mind-map/MindMapCanvas";
 import { ActivityChart } from "@/components/observability/ActivityChart";
 import { StatBar } from "@/components/observability/StatBar";
 
 export default async function DashboardPage() {
   const session = await auth();
-  const userId = session!.user!.id;
+  if (!session?.user?.id) redirect("/login");
+  const userId = session.user.id;
 
   const [skills, domains, runs] = await Promise.all([
     prisma.skill.findMany({ where: { userId }, include: { domain: true } }),
@@ -56,7 +58,7 @@ export default async function DashboardPage() {
             </Link>
           </div>
         ) : (
-          <MindMapCanvas skills={skills} domains={domains} userName={session!.user!.name ?? "Me"} />
+          <MindMapCanvas skills={skills} domains={domains} userName={session.user.name ?? "Me"} />
         )}
       </div>
       <div className="border-t border-gray-800 p-4">
