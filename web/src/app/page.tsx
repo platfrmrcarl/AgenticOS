@@ -9,7 +9,7 @@ interface StripePlan {
   price: number;
   interval: string;
   features: string[];
-  popular?: boolean;
+  description?: string;
 }
 
 const FALLBACK_PLANS: StripePlan[] = [
@@ -37,19 +37,19 @@ const FALLBACK_PLANS: StripePlan[] = [
       "All integrations",
       "Custom scheduling",
     ],
-    popular: true,
   },
   {
     id: "enterprise",
-    name: "Enterprise",
-    price: 499,
+    name: "Scale",
+    price: 399,
     interval: "month",
+    description: "For teams and enterprises running complex agentic operations",
     features: [
       "Everything in Pro",
-      "Dedicated account manager",
-      "SLA guarantee",
+      "Multi-agent orchestration",
       "Custom integrations",
-      "On-premise option",
+      "SLA guarantee",
+      "Dedicated success manager",
     ],
   },
 ];
@@ -88,7 +88,6 @@ async function getPlans(): Promise<StripePlan[]> {
         price: (price.unit_amount ?? 0) / 100,
         interval: price.recurring?.interval ?? "month",
         features,
-        popular: product.metadata?.popular === "true",
       };
     });
   } catch {
@@ -444,16 +443,16 @@ export default async function HomePage() {
             Start free. Scale as you grow.
           </p>
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {plans.map((plan) => (
+            {plans.map((plan, i) => (
               <div
                 key={plan.id}
                 className={`rounded-2xl p-8 border ${
-                  plan.popular
+                  i === 1
                     ? "border-primary bg-primary/5 ring-2 ring-primary"
                     : "border-border bg-background"
                 } relative`}
               >
-                {plan.popular && (
+                {i === 1 && (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary text-primary-foreground text-xs font-semibold rounded-full">
                     Most Popular
                   </span>
@@ -474,7 +473,7 @@ export default async function HomePage() {
                 <Link
                   href={`/checkout?priceId=${plan.id}`}
                   className={`block text-center py-3 rounded-xl font-semibold transition-colors ${
-                    plan.popular
+                    i === 1
                       ? "bg-primary text-primary-foreground hover:bg-primary/90"
                       : "border border-border hover:bg-muted"
                   }`}

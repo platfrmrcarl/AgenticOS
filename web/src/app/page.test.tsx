@@ -40,20 +40,16 @@ describe("FALLBACK_PLANS (via getPlans fallback)", () => {
     expect(FALLBACK_PLANS_TEST).toHaveLength(3);
   });
 
-  it("marks the 'pro' plan as popular", async () => {
+  it("has 'pro' plan at index 1 (middle / most popular)", async () => {
     const { FALLBACK_PLANS_TEST } = await import("./page");
-    const proPlan = FALLBACK_PLANS_TEST.find(
-      (p: { name: string }) => p.name === "Pro"
-    );
-    expect(proPlan).toBeDefined();
-    expect(proPlan?.popular).toBe(true);
+    expect(FALLBACK_PLANS_TEST[1].name).toBe("Pro");
   });
 
-  it("includes starter, pro, and enterprise plans", async () => {
+  it("includes starter, pro, and scale plans", async () => {
     const { FALLBACK_PLANS_TEST } = await import("./page");
     const names = FALLBACK_PLANS_TEST.map((p: { name: string }) => p.name);
     expect(names).toContain("Starter");
     expect(names).toContain("Pro");
-    expect(names).toContain("Enterprise");
+    expect(names).toContain("Scale");
   });
 });
