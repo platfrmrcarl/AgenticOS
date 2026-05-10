@@ -29,6 +29,7 @@ const mockPrisma = vi.mocked(prisma, true);
 describe("createEmbeddedCheckoutSession", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllEnvs();
   });
 
   it("throws when not authenticated (no session)", async () => {
@@ -93,6 +94,21 @@ describe("createEmbeddedCheckoutSession", () => {
       "No client secret returned from Stripe"
     );
   });
+
+  it("throws when AUTH_URL is not configured", async () => {
+    mockAuth.mockResolvedValue({ user: { email: "test@example.com" } } as never);
+    vi.unstubAllEnvs();
+    await expect(createEmbeddedCheckoutSession("price_test_123")).rejects.toThrow(
+      "AUTH_URL is not configured"
+    );
+  });
+
+  it("throws for invalid price ID", async () => {
+    mockAuth.mockResolvedValue({ user: { email: "test@example.com" } } as never);
+    vi.stubEnv("AUTH_URL", "https://test.example.com");
+    await expect(createEmbeddedCheckoutSession("")).rejects.toThrow("Invalid price ID");
+    await expect(createEmbeddedCheckoutSession("prod_123")).rejects.toThrow("Invalid price ID");
+  });
 });
 
 describe("cancelSubscription", () => {
@@ -154,5 +170,21 @@ describe("cancelSubscription", () => {
         subscriptionPlan: null,
       },
     });
+  });
+
+  it("resolves even when prisma update throws after successful Stripe cancel", async () => {
+    mockAuth.mockResolvedValue({ user: { email: "test@example.com" } } as never);
+    (prisma.user.findUnique as any).mockResolvedValue({
+      stripeSubscriptionId: "sub_test_123",
+    });
+    const mockStripe = {
+      subscriptions: {
+        cancel: vi.fn().mockResolvedValue({}),
+      },
+    };
+    mockGetStripe.mockReturnValue(mockStripe as never);
+    (prisma.user.update as any).mockRejectedValue(new Error("DB error"));
+    // Should not throw — the Stripe cancel succeeded, DB reconciles via webhook
+    await expect(cancelSubscription()).resolves.toBeUndefined();
   });
 });
