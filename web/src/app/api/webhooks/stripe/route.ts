@@ -26,16 +26,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Webhook Error: ${message}` }, { status: 400 });
   }
 
-  // Idempotency check
-  const existing = await prisma.processedWebhookEvent.findUnique({
-    where: { id: event.id },
-  });
-  if (existing) {
-    return NextResponse.json({ received: true, duplicate: true });
-  }
-
-  // Process event
+  // Process event (includes idempotency check)
   try {
+    // Idempotency check
+    const existing = await prisma.processedWebhookEvent.findUnique({
+      where: { id: event.id },
+    });
+    if (existing) {
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+
     if (event.type === "checkout.session.completed") {
       const checkoutSession = event.data.object as Stripe.Checkout.Session;
       if (checkoutSession.mode === "subscription" && checkoutSession.customer_email) {

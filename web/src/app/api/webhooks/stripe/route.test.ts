@@ -65,7 +65,7 @@ describe("POST /api/webhooks/stripe", () => {
   });
 
   it("returns 500 when STRIPE_WEBHOOK_SECRET is not set", async () => {
-    vi.unstubAllEnvs();
+    vi.stubEnv("STRIPE_WEBHOOK_SECRET", "");
     const res = await POST(makeRequest());
     expect(res.status).toBe(500);
     const json = await res.json();
@@ -147,7 +147,7 @@ describe("POST /api/webhooks/stripe", () => {
           mode: "subscription",
           customer_email: "user2@example.com",
           subscription: { id: "sub_obj456" },
-          metadata: {},
+          metadata: { plan: "pro" },
         },
       },
     };
@@ -164,6 +164,38 @@ describe("POST /api/webhooks/stripe", () => {
       expect.objectContaining({
         data: expect.objectContaining({
           stripeSubscriptionId: "sub_obj456",
+          subscriptionPlan: "pro",
+        }),
+      })
+    );
+  });
+
+  it("uses default plan 'pro' when metadata.plan is absent", async () => {
+    const mockStripe = makeStripeInstance();
+    const fakeEvent = {
+      id: "evt_checkout_3",
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          mode: "subscription",
+          customer_email: "user3@example.com",
+          subscription: "sub_no_meta",
+          metadata: {},
+        },
+      },
+    };
+    (mockStripe.webhooks.constructEvent as any).mockReturnValue(fakeEvent);
+    mockGetStripe.mockReturnValue(mockStripe as any);
+    (mockPrisma.processedWebhookEvent.findUnique as any).mockResolvedValue(null);
+    (mockPrisma.processedWebhookEvent.create as any).mockResolvedValue({});
+    (mockPrisma.user.update as any).mockResolvedValue({});
+
+    const res = await POST(makeRequest());
+    expect(res.status).toBe(200);
+
+    expect(mockPrisma.user.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
           subscriptionPlan: "pro",
         }),
       })
