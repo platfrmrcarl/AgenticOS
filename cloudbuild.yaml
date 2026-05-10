@@ -116,9 +116,21 @@ steps:
         mkdir -p /cloudsql
         cloud-sql-proxy --unix-socket=/cloudsql $_SQL_INSTANCE &
         sleep 3
-        cd /workspace/web && npm install --no-save prisma \
-          && npx prisma migrate resolve --rolled-back 20260510000000_add_stripe_fields 2>/dev/null || true \
-          && npx prisma migrate deploy
+        cd /workspace/web && npm install --no-save prisma
+        cat > /tmp/repair.sql << 'ENDSQL'
+        WITH repair AS (
+          DELETE FROM "_prisma_migrations"
+          WHERE migration_name = '20260509000000_init'
+            AND NOT EXISTS (
+              SELECT 1 FROM information_schema.tables
+              WHERE table_name = 'User' AND table_schema = 'public'
+            )
+          RETURNING 1
+        )
+        SELECT count(*) AS repaired FROM repair;
+        ENDSQL
+        npx prisma db execute --file /tmp/repair.sql --url "$DATABASE_URL" 2>/dev/null || true
+        npx prisma migrate deploy
 
   - name: gcr.io/cloud-builders/docker
     id: build-web
