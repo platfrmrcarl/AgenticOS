@@ -1,0 +1,215 @@
+steps:
+  # ── 0. Fetch git history for diff ──────────────────────────────────────────
+  - name: gcr.io/cloud-builders/git
+    id: git-history
+    entrypoint: bash
+    args:
+      - -c
+      - git fetch --unshallow 2>/dev/null || git fetch --depth=50 2>/dev/null || true
+
+  # ── 1. Detect which services changed ───────────────────────────────────────
+  - name: gcr.io/cloud-builders/git
+    id: detect-changes
+    waitFor: [git-history]
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        # 2>/dev/null intentional: HEAD~1 may not exist on first branch commit; fallback to git ls-files (builds all services)
+        git diff --name-only HEAD~1 HEAD 2>/dev/null > /workspace/changed.txt \
+          || git ls-files > /workspace/changed.txt
+        # If no git history (tarball upload), build everything
+        if [ ! -s /workspace/changed.txt ]; then
+          printf 'agents/placeholder\nweb/placeholder\n' > /workspace/changed.txt
+        fi
+        echo "=== Changed files ==="
+        cat /workspace/changed.txt
+
+  # ── 2. Restore Next.js build cache from GCS ────────────────────────────────
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: restore-web-cache
+    waitFor: [detect-changes]
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        grep -q '^web/' /workspace/changed.txt \
+          || { echo "web/ unchanged, skipping cache restore"; exit 0; }
+        gsutil -m rsync -r gs://$_CACHE_BUCKET/next-cache /workspace/web/.next/cache 2>/dev/null || true
+
+  # ── 2b. Create buildx builder ──────────────────────────────────────────────
+  - name: gcr.io/cloud-builders/docker
+    id: setup-buildx
+    waitFor: [detect-changes]
+    entrypoint: bash
+    args:
+      - -c
+      - docker buildx create --use --name agenticos-builder
+
+  # ── agents service ─────────────────────────────────────────────────────────
+
+  - name: gcr.io/cloud-builders/docker
+    id: build-agents
+    waitFor: [setup-buildx]
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        grep -q '^agents/' /workspace/changed.txt \
+          || { echo "agents/ unchanged, skipping build"; exit 0; }
+        docker buildx build \
+          -t $_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/agenticos-agents:$BUILD_ID \
+          -t $_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/agenticos-agents:latest \
+          --cache-from type=registry,ref=$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/agenticos-agents:buildcache \
+          --cache-to type=registry,ref=$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/agenticos-agents:buildcache,mode=max \
+          --push \
+          agents/
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: deploy-agents
+    waitFor: [build-agents]
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        grep -q '^agents/' /workspace/changed.txt \
+          || { echo "agents/ unchanged, skipping deploy"; exit 0; }
+        gcloud run deploy agenticos-agents \
+          --image=$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/agenticos-agents:$BUILD_ID \
+          --region=$_REGION \
+          --platform=managed \
+          --port=8000 \
+          --add-cloudsql-instances=$_SQL_INSTANCE \
+          --set-secrets=DATABASE_URL=database-url-agents:latest,ANTHROPIC_API_KEY=anthropic-api-key:latest \
+          --set-env-vars=GOOGLE_CLOUD_PROJECT=$PROJECT_ID \
+          --memory=1Gi \
+          --cpu=1 \
+          --min-instances=1 \
+          --max-instances=3 \
+          --concurrency=80 \
+          --cpu-boost \
+          --startup-probe=httpGet.path=/health,initialDelaySeconds=5,periodSeconds=5,failureThreshold=3,timeoutSeconds=5 \
+          --liveness-probe=httpGet.path=/health,periodSeconds=30,failureThreshold=3,timeoutSeconds=5 \
+          --service-account=agenticos-agents-runtime@$PROJECT_ID.iam.gserviceaccount.com \
+          --ingress=internal-and-cloud-load-balancing \
+          --no-allow-unauthenticated
+        gcloud run services update-traffic agenticos-agents \
+          --to-latest \
+          --region=$_REGION
+
+  # ── web service ────────────────────────────────────────────────────────────
+
+  - name: node:20-alpine
+    id: migrate-db
+    waitFor: [detect-changes]
+    secretEnv: ['DATABASE_URL']
+    entrypoint: sh
+    args:
+      - -c
+      - |
+        grep -q '^web/' /workspace/changed.txt \
+          || { echo "web/ unchanged, skipping migration"; exit 0; }
+        apk add --no-cache wget
+        wget -q "https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.14.1/cloud-sql-proxy.linux.amd64" \
+             -O /usr/local/bin/cloud-sql-proxy \
+          && chmod +x /usr/local/bin/cloud-sql-proxy
+        mkdir -p /cloudsql
+        cloud-sql-proxy --unix-socket=/cloudsql $_SQL_INSTANCE &
+        sleep 3
+        cd /workspace/web && npm install --no-save prisma && npx prisma migrate deploy
+
+  - name: gcr.io/cloud-builders/docker
+    id: build-web
+    waitFor: [setup-buildx, restore-web-cache]
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        grep -q '^web/' /workspace/changed.txt \
+          || { echo "web/ unchanged, skipping build"; exit 0; }
+        docker buildx build \
+          -t $_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/agenticos:$BUILD_ID \
+          -t $_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/agenticos:latest \
+          --cache-from type=registry,ref=$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/agenticos:buildcache \
+          --cache-to type=registry,ref=$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/agenticos:buildcache,mode=max \
+          --build-arg=AUTH_URL=$_AUTH_URL \
+          --target runner \
+          --push \
+          web/
+
+  - name: gcr.io/cloud-builders/docker
+    id: save-web-cache-extract
+    waitFor: [build-web]
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        grep -q '^web/' /workspace/changed.txt \
+          || { echo "web/ unchanged, skipping cache save"; exit 0; }
+        docker buildx build \
+          --target cache-export \
+          --output type=local,dest=/workspace/next-cache-out \
+          --cache-from type=registry,ref=$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/agenticos:buildcache \
+          --build-arg=AUTH_URL=$_AUTH_URL \
+          web/ || true
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: save-web-cache-upload
+    waitFor: [save-web-cache-extract]
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        grep -q '^web/' /workspace/changed.txt \
+          || { echo "web/ unchanged, skipping cache upload"; exit 0; }
+        [ -d /workspace/next-cache-out ] \
+          && gsutil -m rsync -r /workspace/next-cache-out gs://$_CACHE_BUCKET/next-cache \
+          || true
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: deploy-web
+    waitFor: [build-web, migrate-db]
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        grep -q '^web/' /workspace/changed.txt \
+          || { echo "web/ unchanged, skipping deploy"; exit 0; }
+        gcloud run deploy agenticos-web \
+          --image=$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/agenticos:$BUILD_ID \
+          --region=$_REGION \
+          --platform=managed \
+          --add-cloudsql-instances=$_SQL_INSTANCE \
+          --set-secrets=DATABASE_URL=database-url-web:latest,AUTH_GOOGLE_SECRET=auth-google-secret:latest,AUTH_SECRET=auth-secret:latest \
+          --set-env-vars=AUTH_GOOGLE_ID=$_AUTH_GOOGLE_ID,AUTH_URL=$_AUTH_URL,AUTH_TRUST_HOST=true,AGENTS_SERVICE_URL=$_AGENTS_SERVICE_URL,AGENTS_AUDIENCE=$_AGENTS_AUDIENCE \
+          --memory=1Gi \
+          --cpu=1 \
+          --min-instances=1 \
+          --max-instances=3 \
+          --startup-probe=httpGet.path=/api/health,initialDelaySeconds=5,periodSeconds=5,failureThreshold=10,timeoutSeconds=3 \
+          --liveness-probe=httpGet.path=/api/health,periodSeconds=30,failureThreshold=3,timeoutSeconds=5 \
+          --service-account=agenticos-web@$PROJECT_ID.iam.gserviceaccount.com \
+          --ingress=all \
+          --allow-unauthenticated
+        gcloud run services update-traffic agenticos-web \
+          --to-latest \
+          --region=$_REGION
+
+
+substitutions:
+  _REGION: us-east1
+  _REPO: cloud-run-source-deploy
+  _SQL_INSTANCE: "agenticos-platfrmr:us-east1:agenticos-db"
+  _CACHE_BUCKET: "agenticos-platfrmr_cloudbuild"
+  _AUTH_GOOGLE_ID: "572347809970-tmtj00ibo1amv5k3vst7tmck8hlattjg.apps.googleusercontent.com"
+  _AUTH_URL: https://www.agenticoperations.net
+  _AGENTS_SERVICE_URL: "https://agenticos-agents-rpwpeh4sqa-ue.a.run.app"
+  _AGENTS_AUDIENCE: "https://agenticos-agents-rpwpeh4sqa-ue.a.run.app"
+
+availableSecrets:
+  secretManager:
+  - versionName: projects/$PROJECT_ID/secrets/database-url-web/versions/latest
+    env: DATABASE_URL
+
+options:
+  logging: CLOUD_LOGGING_ONLY
