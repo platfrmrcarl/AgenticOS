@@ -13,7 +13,7 @@ async function getPlans(): Promise<StripePlan[]> {
 
     const filtered = prices.data.filter((price) => {
       const product = price.product as { metadata?: Record<string, string> };
-      return product?.metadata?.product === "agenticos";
+      return product?.metadata?.product === "agentic";
     });
 
     if (filtered.length === 0) return FALLBACK_PLANS;
