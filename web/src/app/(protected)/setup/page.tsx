@@ -3,6 +3,12 @@ import { useState, useEffect } from "react";
 import { PhaseIndicator } from "@/components/setup/PhaseIndicator";
 import { ChatInterface } from "@/components/setup/ChatInterface";
 
+function toUiStep(backendPhase: number): number {
+  if (backendPhase <= 1) return 1;
+  if (backendPhase >= 5) return 3;
+  return 2;
+}
+
 export default function SetupPage() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [phase, setPhase] = useState(1);
@@ -52,7 +58,7 @@ export default function SetupPage() {
         <div className="px-4 pt-6 pb-2 text-xs font-mono text-muted-foreground uppercase tracking-widest">
           Setup Progress
         </div>
-        <PhaseIndicator currentPhase={phase} />
+        <PhaseIndicator currentPhase={toUiStep(phase)} />
       </aside>
       <main className="flex-1 overflow-hidden">
         <ChatInterface

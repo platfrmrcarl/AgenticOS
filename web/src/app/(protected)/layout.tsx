@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { UserMenu } from "@/components/user-menu";
 
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -21,9 +22,11 @@ export default async function ProtectedLayout({ children }: { children: React.Re
             Skills
           </Link>
         </div>
-        <div className="text-muted-foreground text-sm font-mono">
-          {session.user.email ?? session.user.name}
-        </div>
+        <UserMenu
+          name={session.user.name}
+          email={session.user.email}
+          image={session.user.image}
+        />
       </nav>
       {children}
     </div>

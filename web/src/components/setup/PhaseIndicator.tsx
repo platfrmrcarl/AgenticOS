@@ -1,11 +1,9 @@
 import { cn } from "@/lib/utils";
 
 const PHASES = [
-  { num: 1, label: "Brain Dump" },
-  { num: 2, label: "Domain Locking" },
-  { num: 3, label: "Skill Surfacing" },
-  { num: 4, label: "Automation Triage" },
-  { num: 5, label: "Deliverables" },
+  { num: 1, label: "Collecting" },
+  { num: 2, label: "Automating" },
+  { num: 3, label: "Delivering" },
 ];
 
 interface PhaseIndicatorProps {
