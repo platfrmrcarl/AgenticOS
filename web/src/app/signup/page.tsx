@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { GoogleIcon } from "@/components/ui/google-icon";
 
-export default function LoginPage() {
+export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -18,13 +18,27 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    const res = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data?.error ?? "Could not create account");
+      setLoading(false);
+      return;
+    }
+
     const result = await signIn("credentials", { email, password, redirect: false });
     setLoading(false);
     if (!result || result.error) {
-      setError("Invalid email or password");
-    } else {
-      router.push("/dashboard");
+      setError("Account created, but sign-in failed. Try logging in.");
+      return;
     }
+    router.push("/dashboard");
   }
 
   return (
@@ -33,7 +47,7 @@ export default function LoginPage() {
         <div className="text-primary font-mono text-xs tracking-widest uppercase mb-6">
           Agentic Operations
         </div>
-        <h1 className="text-2xl font-bold text-foreground mb-8">Sign in</h1>
+        <h1 className="text-2xl font-bold text-foreground mb-8">Create your account</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
             id="email"
@@ -47,15 +61,16 @@ export default function LoginPage() {
           <Input
             id="password"
             type="password"
-            placeholder="Password"
+            placeholder="Password (min 8 characters)"
             aria-label="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            minLength={8}
             required
           />
           {error && <p className="text-red-400 text-sm font-mono">{error}</p>}
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing in..." : "Sign in →"}
+            {loading ? "Creating account..." : "Sign up →"}
           </Button>
         </form>
         <div className="relative my-6">
@@ -73,12 +88,12 @@ export default function LoginPage() {
           onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
         >
           <GoogleIcon />
-          Sign in with Google
+          Sign up with Google
         </Button>
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?{" "}
-          <Link href="/signup" className="text-primary hover:underline">
-            Sign up
+          Already have an account?{" "}
+          <Link href="/login" className="text-primary hover:underline">
+            Sign in
           </Link>
         </p>
       </div>

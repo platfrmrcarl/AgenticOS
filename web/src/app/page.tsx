@@ -461,10 +461,10 @@ export default async function HomePage() {
             Agentic Operations.
           </p>
           <Link
-            href="#pricing"
-            className="inline-flex items-center px-8 py-4 bg-white text-primary rounded-xl font-semibold hover:bg-white/90 transition-colors"
+            href="/signup"
+            className="inline-flex items-center px-10 py-5 bg-white text-primary rounded-xl font-bold text-lg hover:bg-white/90 transition-colors"
           >
-            See Pricing
+            Get Started
           </Link>
         </div>
       </section>
