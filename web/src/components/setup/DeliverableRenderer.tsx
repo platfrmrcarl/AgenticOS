@@ -28,7 +28,7 @@ export function DeliverableRenderer({ content }: DeliverableRendererProps) {
     <div className="space-y-4">
       {parts.map((part, i) =>
         part.type === "text" ? (
-          <p key={i} className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
+          <p key={i} className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap">
             {part.content}
           </p>
         ) : (
@@ -50,8 +50,8 @@ function CodeBlock({ code, lang }: { code: string; lang?: string }) {
 
   return (
     <div className="relative group">
-      <div className="flex items-center justify-between bg-gray-900 border border-gray-700 px-4 py-2">
-        <span className="text-xs font-mono text-gray-500">{lang ?? "text"}</span>
+      <div className="flex items-center justify-between bg-card border border-border px-4 py-2">
+        <span className="text-xs font-mono text-muted-foreground">{lang ?? "text"}</span>
         <Button
           size="sm"
           variant="ghost"
@@ -61,7 +61,7 @@ function CodeBlock({ code, lang }: { code: string; lang?: string }) {
           {copied ? "Copied!" : "Copy"}
         </Button>
       </div>
-      <pre className="bg-gray-950 border border-t-0 border-gray-700 p-4 overflow-x-auto text-sm font-mono text-gray-200">
+      <pre className="bg-card border border-t-0 border-border p-4 overflow-x-auto text-sm font-mono text-foreground">
         <code>{code}</code>
       </pre>
     </div>

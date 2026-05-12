@@ -52,8 +52,8 @@ export default async function DashboardPage() {
       <div className="flex-1 overflow-hidden">
         {skills.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <p className="text-gray-500 mb-4">No skills yet. Complete the setup wizard to build your Agentic OS.</p>
-            <Link href="/setup" className="text-orange-500 hover:text-amber-400 text-sm">
+            <p className="text-muted-foreground mb-4">No skills yet. Complete the setup wizard to build your Agentic OS.</p>
+            <Link href="/setup" className="text-primary hover:text-primary text-sm">
               Start Setup →
             </Link>
           </div>
@@ -61,8 +61,8 @@ export default async function DashboardPage() {
           <MindMapCanvas skills={skills} domains={domains} userName={session.user.name ?? "Me"} />
         )}
       </div>
-      <div className="border-t border-gray-800 p-4">
-        <div className="text-xs font-mono text-gray-500 uppercase tracking-widest mb-3">
+      <div className="border-t border-border p-4">
+        <div className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-3">
           Activity — Last 30 Days
         </div>
         <ActivityChart data={chartData} />

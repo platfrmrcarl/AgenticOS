@@ -53,33 +53,33 @@ export function SkillRunner({ skill, onRunComplete }: SkillRunnerProps) {
 
   return (
     <div className="flex flex-col flex-1 h-full font-mono">
-      <div className="px-4 py-2 border-b border-gray-800 text-xs text-gray-500 uppercase tracking-widest flex items-center gap-2">
+      <div className="px-4 py-2 border-b border-border text-xs text-muted-foreground uppercase tracking-widest flex items-center gap-2">
         <span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
         {skill ? skill.name : "No skill selected"}
       </div>
 
       <div
         ref={outputRef}
-        className="flex-1 overflow-y-auto p-6 text-sm text-gray-300 whitespace-pre-wrap leading-relaxed"
+        className="flex-1 overflow-y-auto p-6 text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed"
       >
         {!skill && (
-          <p className="text-gray-600 text-center mt-20">
+          <p className="text-muted-foreground text-center mt-20">
             RUN A SKILL TO BEGIN
-            <span className="inline-block w-2 h-4 bg-orange-500 ml-2 animate-pulse align-middle" />
+            <span className="inline-block w-2 h-4 bg-primary ml-2 animate-pulse align-middle" />
           </p>
         )}
         {skill && !output && !running && (
-          <p className="text-gray-600">
-            Ready to run: <span className="text-orange-400">{skill.name}</span>
+          <p className="text-muted-foreground">
+            Ready to run: <span className="text-primary">{skill.name}</span>
           </p>
         )}
         {output}
         {running && (
-          <span className="inline-block w-2 h-4 bg-orange-500 ml-1 animate-pulse align-middle" />
+          <span className="inline-block w-2 h-4 bg-primary ml-1 animate-pulse align-middle" />
         )}
       </div>
 
-      <div className="border-t border-gray-800 p-4 flex gap-3">
+      <div className="border-t border-border p-4 flex gap-3">
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}

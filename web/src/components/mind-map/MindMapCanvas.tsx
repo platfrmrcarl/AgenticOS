@@ -38,11 +38,11 @@ export function MindMapCanvas({ skills, domains, userName }: MindMapCanvasProps)
         maxZoom={1.5}
       >
         <Background color="#1f2937" gap={20} />
-        <Controls className="[&>button]:bg-gray-900 [&>button]:border-gray-700 [&>button]:text-gray-400" />
+        <Controls className="[&>button]:bg-card [&>button]:border-border [&>button]:text-muted-foreground" />
         <MiniMap
           nodeColor="#374151"
           maskColor="rgba(10,10,10,0.8)"
-          className="!bg-gray-950 !border-gray-800"
+          className="!bg-card !border-border"
         />
       </ReactFlow>
     </div>

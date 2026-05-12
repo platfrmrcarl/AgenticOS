@@ -16,11 +16,11 @@ export const SkillNode = memo(({ data }: { data: SkillNodeData }) => {
   }[data.frequency] as "default" | "warning" | "success";
 
   return (
-    <div className="bg-gray-900 border border-gray-700 rounded px-3 py-2 min-w-[140px] max-w-[180px] hover:border-orange-500/50 transition-colors cursor-pointer">
-      <Handle type="target" position={Position.Left} className="!bg-gray-600 !border-gray-600 !w-2 !h-2" />
-      <p className="text-white text-xs font-medium leading-tight mb-1">{data.label}</p>
+    <div className="bg-card border border-border rounded px-3 py-2 min-w-[140px] max-w-[180px] hover:border-primary/50 transition-colors cursor-pointer">
+      <Handle type="target" position={Position.Left} className="!bg-muted !border-border !w-2 !h-2" />
+      <p className="text-foreground text-xs font-medium leading-tight mb-1">{data.label}</p>
       {data.description && (
-        <p className="text-gray-500 text-xs leading-tight mb-2 line-clamp-2">{data.description}</p>
+        <p className="text-muted-foreground text-xs leading-tight mb-2 line-clamp-2">{data.description}</p>
       )}
       <Badge variant={freqVariant} className="text-[10px]">
         {data.frequency.replace("_", " ")}

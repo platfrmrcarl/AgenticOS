@@ -23,7 +23,7 @@ export function PhaseIndicator({ currentPhase }: PhaseIndicatorProps) {
             key={phase.num}
             className={cn(
               "flex items-center gap-3 px-4 py-3 rounded transition-colors",
-              isActive && "bg-orange-500/10 border border-orange-500/30",
+              isActive && "bg-primary/10 border border-primary/30",
               isComplete && "opacity-60",
               !isActive && !isComplete && "opacity-30"
             )}
@@ -31,9 +31,9 @@ export function PhaseIndicator({ currentPhase }: PhaseIndicatorProps) {
             <div
               className={cn(
                 "w-6 h-6 rounded-full flex items-center justify-center text-xs font-mono font-bold shrink-0",
-                isActive && "bg-orange-500 text-white",
-                isComplete && "bg-green-500 text-white",
-                !isActive && !isComplete && "bg-gray-800 text-gray-500 border border-gray-700"
+                isActive && "bg-primary text-primary-foreground",
+                isComplete && "bg-green-500 text-foreground",
+                !isActive && !isComplete && "bg-muted text-muted-foreground border border-border"
               )}
             >
               {isComplete ? "✓" : phase.num}
@@ -41,8 +41,8 @@ export function PhaseIndicator({ currentPhase }: PhaseIndicatorProps) {
             <span
               className={cn(
                 "text-sm font-medium",
-                isActive && "text-white",
-                !isActive && "text-gray-500"
+                isActive && "text-foreground",
+                !isActive && "text-muted-foreground"
               )}
             >
               {phase.label}

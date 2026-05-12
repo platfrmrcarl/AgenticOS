@@ -26,12 +26,12 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
+    <main className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-sm">
-        <div className="text-orange-500 font-mono text-xs tracking-widest uppercase mb-6">
+        <div className="text-primary font-mono text-xs tracking-widest uppercase mb-6">
           Agentic Operations
         </div>
-        <h1 className="text-2xl font-bold text-white mb-8">Sign in</h1>
+        <h1 className="text-2xl font-bold text-foreground mb-8">Sign in</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
             id="email"
@@ -58,16 +58,16 @@ export default function LoginPage() {
         </form>
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-800" />
+            <div className="w-full border-t border-border" />
           </div>
           <div className="relative flex justify-center text-xs">
-            <span className="bg-[#0a0a0a] px-2 text-gray-500 font-mono">or</span>
+            <span className="bg-background px-2 text-muted-foreground font-mono">or</span>
           </div>
         </div>
         <Button
           type="button"
           variant="outline"
-          className="w-full border-gray-800 text-white hover:bg-gray-900"
+          className="w-full border-border text-foreground hover:bg-muted"
           onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
         >
           Continue with Google

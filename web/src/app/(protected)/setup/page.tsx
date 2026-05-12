@@ -41,15 +41,15 @@ export default function SetupPage() {
   if (!sessionId) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="text-orange-500 font-mono text-sm animate-pulse">Initializing session...</div>
+        <div className="text-primary font-mono text-sm animate-pulse">Initializing session...</div>
       </div>
     );
   }
 
   return (
     <div className="flex h-[calc(100vh-49px)]">
-      <aside className="w-56 border-r border-gray-800 shrink-0">
-        <div className="px-4 pt-6 pb-2 text-xs font-mono text-gray-500 uppercase tracking-widest">
+      <aside className="w-56 border-r border-border shrink-0">
+        <div className="px-4 pt-6 pb-2 text-xs font-mono text-muted-foreground uppercase tracking-widest">
           Setup Progress
         </div>
         <PhaseIndicator currentPhase={phase} />

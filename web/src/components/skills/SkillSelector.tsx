@@ -20,9 +20,9 @@ export function SkillSelector({ skills, selectedId, onSelect }: SkillSelectorPro
   }
 
   return (
-    <div className="border-b border-gray-800 px-6 py-3">
+    <div className="border-b border-border px-6 py-3">
       <select
-        className="bg-gray-900 border border-gray-700 text-gray-300 text-sm font-mono px-3 py-2 focus:outline-none focus:border-orange-500 min-w-[300px]"
+        className="bg-card border border-border text-muted-foreground text-sm font-mono px-3 py-2 focus:outline-none focus:border-ring min-w-[300px]"
         value={selectedId ?? ""}
         onChange={(e) => { if (e.target.value) onSelect(e.target.value); }}
       >

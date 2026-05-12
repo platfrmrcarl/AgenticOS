@@ -75,8 +75,8 @@ export function ChatInterface({ sessionId, phase, onPhaseComplete }: ChatInterfa
             <div
               className={`max-w-[80%] rounded px-4 py-3 text-sm ${
                 msg.role === "user"
-                  ? "bg-orange-500/20 border border-orange-500/30 text-gray-200"
-                  : "bg-gray-900 border border-gray-800 text-gray-300"
+                  ? "bg-primary/20 border border-primary/30 text-foreground"
+                  : "bg-card border border-border text-muted-foreground"
               }`}
             >
               {msg.role === "assistant" && phase === 5 ? (
@@ -85,14 +85,14 @@ export function ChatInterface({ sessionId, phase, onPhaseComplete }: ChatInterfa
                 <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
               )}
               {streaming && i === messages.length - 1 && msg.role === "assistant" && (
-                <span className="inline-block w-2 h-4 bg-orange-500 ml-1 animate-pulse" />
+                <span className="inline-block w-2 h-4 bg-primary ml-1 animate-pulse" />
               )}
             </div>
           </div>
         ))}
         <div ref={bottomRef} />
       </div>
-      <div className="border-t border-gray-800 p-4 flex gap-3">
+      <div className="border-t border-border p-4 flex gap-3">
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
