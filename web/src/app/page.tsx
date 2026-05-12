@@ -1,43 +1,40 @@
 import Link from "next/link";
+import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
-import { FALLBACK_PLANS, type StripePlan } from "@/lib/plans";
+import { PLAN_NAMES, type StripePlan } from "@/lib/plans";
 
 async function getPlans(): Promise<StripePlan[]> {
-  try {
-    const stripe = getStripe();
-    const prices = await stripe.prices.list({
-      active: true,
-      expand: ["data.product"],
-      limit: 10,
-    });
+  const stripe = getStripe();
+  const products = await stripe.products.list({
+    active: true,
+    limit: 100,
+    expand: ["data.default_price"],
+  });
 
-    const filtered = prices.data.filter((price) => {
-      const product = price.product as { metadata?: Record<string, string> };
-      return product?.metadata?.product === "agentic";
-    });
-
-    if (filtered.length === 0) return FALLBACK_PLANS;
-
-    return filtered.map((price) => {
-      const product = price.product as {
-        name: string;
-        metadata?: Record<string, string>;
-      };
-      const featuresRaw = product.metadata?.features ?? "";
-      const features = featuresRaw
-        ? featuresRaw.split(",").map((f) => f.trim())
-        : ["Automated workflows", "Priority support", "All integrations"];
-      return {
-        id: price.id,
-        name: product.name,
-        price: (price.unit_amount ?? 0) / 100,
-        interval: price.recurring?.interval ?? "month",
-        features,
-      };
-    });
-  } catch {
-    return FALLBACK_PLANS;
+  const byName = new Map<string, Stripe.Product>();
+  for (const p of products.data) {
+    if (p.metadata?.product !== "agentic") continue;
+    if (!PLAN_NAMES.includes(p.name as (typeof PLAN_NAMES)[number])) continue;
+    if (!byName.has(p.name)) byName.set(p.name, p);
   }
+
+  return PLAN_NAMES.flatMap((name) => {
+    const product = byName.get(name);
+    if (!product) return [];
+    const price = product.default_price as Stripe.Price | null;
+    const features = (product.marketing_features ?? [])
+      .map((f) => f.name)
+      .filter((n): n is string => Boolean(n));
+    return [
+      {
+        id: price?.id ?? product.id,
+        name: product.name,
+        price: (price?.unit_amount ?? 0) / 100,
+        interval: price?.recurring?.interval ?? "month",
+        features,
+      },
+    ];
+  });
 }
 
 // ─── AnimatedSwarm ────────────────────────────────────────────────────────────
@@ -230,9 +227,8 @@ export default async function HomePage() {
       <section className="pt-32 pb-20 px-4">
         <div className="max-w-4xl mx-auto flex flex-col items-center text-center">
           <h1 className="text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-tight">
-            Run your business operations that you care about{" "}
-            <span className="text-primary">Agentically</span>, and get notified
-            when you need to step in.
+            Automate Operations.{" "}
+            <span className="text-primary">Stay in Command.</span>
           </h1>
           <p className="mt-6 text-xl text-muted-foreground max-w-2xl">
             Agentic Operations creates custom agentic workflows that handle the

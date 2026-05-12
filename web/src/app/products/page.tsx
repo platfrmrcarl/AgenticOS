@@ -1,128 +1,109 @@
-import Link from "next/link";
-import { getStripe } from "@/lib/stripe";
-import { Button } from "@/components/ui/button";
+import Link from 'next/link';
+import type Stripe from 'stripe';
+import { getStripe } from '@/lib/stripe';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { PLAN_NAMES } from '@/lib/plans';
 
-interface AgenticProduct {
-  priceId: string;
-  productId: string;
-  name: string;
-  description: string | null;
-  image: string | null;
-  amount: number;
-  currency: string;
-  interval: string;
-  features: string[];
-}
+async function getPlans() {
+  const products = await getStripe().products.list({
+    active: true,
+    limit: 100,
+    expand: ['data.default_price'],
+  });
 
-async function getAgenticProducts(): Promise<AgenticProduct[]> {
-  try {
-    const stripe = getStripe();
-    const prices = await stripe.prices.list({
-      active: true,
-      expand: ["data.product"],
-      limit: 100,
-    });
-
-    return prices.data
-      .filter((price) => {
-        const product = price.product as { metadata?: Record<string, string>; active?: boolean };
-        return product?.active !== false && product?.metadata?.product === "agentic";
-      })
-      .map((price) => {
-        const product = price.product as {
-          id: string;
-          name: string;
-          description: string | null;
-          images?: string[];
-          metadata?: Record<string, string>;
-        };
-        const featuresRaw = product.metadata?.features ?? "";
-        const features = featuresRaw
-          ? featuresRaw.split(",").map((f) => f.trim()).filter(Boolean)
-          : [];
-        return {
-          priceId: price.id,
-          productId: product.id,
-          name: product.name,
-          description: product.description,
-          image: product.images?.[0] ?? null,
-          amount: (price.unit_amount ?? 0) / 100,
-          currency: (price.currency ?? "usd").toUpperCase(),
-          interval: price.recurring?.interval ?? "month",
-          features,
-        };
-      });
-  } catch {
-    return [];
+  const byName = new Map<string, Stripe.Product>();
+  for (const p of products.data) {
+    if (p.metadata?.product !== 'agentic') continue;
+    if (!PLAN_NAMES.includes(p.name as (typeof PLAN_NAMES)[number])) continue;
+    if (!byName.has(p.name)) byName.set(p.name, p);
   }
+
+  return PLAN_NAMES.flatMap((name) => {
+    const product = byName.get(name);
+    return product ? [product] : [];
+  });
 }
 
-export default async function ProductsPage() {
-  const products = await getAgenticProducts();
+async function PlansList() {
+  const plans = await getPlans();
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <nav className="border-b border-border px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="text-xl font-bold text-primary">
-          Agentic Operations
-        </Link>
-        <div className="flex items-center gap-4">
-          <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
-            Home
-          </Link>
-        </div>
-      </nav>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      {plans.map((plan, i) => {
+        const price = plan.default_price as Stripe.Price;
+        const amount = price?.unit_amount ?? 0;
+        const priceId = price?.id ?? '';
+        const featured = i === 1;
 
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <h1 className="text-4xl font-bold mb-4">Products</h1>
-        <p className="text-muted-foreground mb-12 max-w-2xl">
-          Live subscriptions from Stripe tagged <code className="text-xs bg-muted px-1.5 py-0.5 rounded">product=agentic</code>.
-        </p>
-
-        {products.length === 0 ? (
-          <div className="border border-border rounded-2xl p-12 text-center">
-            <p className="text-muted-foreground">
-              No products found. Create a product in Stripe with metadata{" "}
-              <code className="text-xs bg-muted px-1.5 py-0.5 rounded">product=agentic</code>{" "}
-              and an active price.
-            </p>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((p) => (
-              <div
-                key={p.priceId}
-                className="bg-background border border-border rounded-2xl p-6 flex flex-col"
-              >
-                <h2 className="text-xl font-bold mb-2">{p.name}</h2>
-                {p.description && (
-                  <p className="text-sm text-muted-foreground mb-4">{p.description}</p>
-                )}
-                <div className="mb-6">
-                  <span className="text-3xl font-bold">${p.amount}</span>
-                  <span className="text-muted-foreground text-sm">
-                    {" "}
-                    {p.currency}/{p.interval}
-                  </span>
-                </div>
-                {p.features.length > 0 && (
-                  <ul className="space-y-2 mb-6 flex-grow">
-                    {p.features.map((f) => (
-                      <li key={f} className="flex items-start gap-2 text-sm">
-                        <span className="text-primary">✓</span>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <Link href={`/products/${p.priceId}/checkout`} className="mt-auto">
-                  <Button className="w-full">Subscribe</Button>
-                </Link>
+        return (
+          <div
+            key={plan.id}
+            className={`relative p-8 rounded-3xl bg-card border-2 transition-all ${
+              featured ? 'border-primary shadow-2xl scale-105 z-10' : 'border-border shadow-sm'
+            }`}
+          >
+            {featured && (
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-primary-foreground text-[10px] uppercase tracking-widest font-black px-4 py-1.5 rounded-full">
+                Most Popular
               </div>
-            ))}
+            )}
+
+            <div className="mb-8">
+              <h3 className="text-xl font-bold mb-4 uppercase tracking-wider">{plan.name}</h3>
+              <div className="flex items-baseline gap-1">
+                <span className="text-5xl font-black">${Math.round(amount / 100)}</span>
+                <span className="text-muted-foreground font-medium">/month</span>
+              </div>
+              <p className="mt-4 text-muted-foreground text-sm">{plan.description}</p>
+            </div>
+
+            <ul className="space-y-4 mb-8">
+              {plan.marketing_features.map((f) => (
+                <li key={f.name} className="flex items-center gap-3 text-sm font-medium">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-primary flex-shrink-0">
+                    <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  {f.name}
+                </li>
+              ))}
+            </ul>
+
+            <Link href={`/checkout?priceId=${priceId}`} className="block">
+              <Button
+                variant={featured ? 'default' : 'outline'}
+                className="w-full h-12 rounded-xl text-md font-bold"
+              >
+                Select Plan
+              </Button>
+            </Link>
           </div>
-        )}
-      </section>
+        );
+      })}
+    </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <main className="min-h-screen pt-28 pb-16 px-6 bg-background">
+      <div className="max-w-6xl mx-auto space-y-12">
+        <div className="text-center space-y-4">
+          <Badge variant="default" className="uppercase tracking-widest text-xs px-4 py-1">
+            Pricing Plans
+          </Badge>
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">Choose Your Plan</h1>
+          <p className="text-lg text-muted-foreground max-w-lg mx-auto leading-relaxed">
+            Select the perfect plan for your SaaS journey. All plans include access to our agentic founding team.
+          </p>
+        </div>
+
+        <PlansList />
+
+        <p className="text-center text-sm text-muted-foreground">
+          Payments processed securely by Stripe. Cancel any time from your account settings.
+        </p>
+      </div>
     </main>
   );
 }

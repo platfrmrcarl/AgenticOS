@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import React from "react";
 
 // ─── Mock next/link so imports don't break in node env ────────────────────────
@@ -28,24 +28,3 @@ describe("page module", () => {
   });
 });
 
-// ─── FALLBACK_PLANS behaviour ─────────────────────────────────────────────────
-describe("FALLBACK_PLANS (via getPlans fallback)", () => {
-  it("exports FALLBACK_PLANS with 3 plans", async () => {
-    const { FALLBACK_PLANS } = await import("@/lib/plans");
-    expect(Array.isArray(FALLBACK_PLANS)).toBe(true);
-    expect(FALLBACK_PLANS).toHaveLength(3);
-  });
-
-  it("has 'pro' plan at index 1 (middle / most popular)", async () => {
-    const { FALLBACK_PLANS } = await import("@/lib/plans");
-    expect(FALLBACK_PLANS[1].name).toBe("Pro");
-  });
-
-  it("includes starter, pro, and scale plans", async () => {
-    const { FALLBACK_PLANS } = await import("@/lib/plans");
-    const names = FALLBACK_PLANS.map((p: { name: string }) => p.name);
-    expect(names).toContain("Starter");
-    expect(names).toContain("Pro");
-    expect(names).toContain("Scale");
-  });
-});
