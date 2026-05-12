@@ -3,7 +3,6 @@ import type Stripe from 'stripe';
 import { getStripe } from '@/lib/stripe';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { PLAN_NAMES } from '@/lib/plans';
 
 async function getPlans() {
   const products = await getStripe().products.list({
@@ -12,17 +11,14 @@ async function getPlans() {
     expand: ['data.default_price'],
   });
 
-  const byName = new Map<string, Stripe.Product>();
-  for (const p of products.data) {
-    if (p.metadata?.product !== 'agentic') continue;
-    if (!PLAN_NAMES.includes(p.name as (typeof PLAN_NAMES)[number])) continue;
-    if (!byName.has(p.name)) byName.set(p.name, p);
-  }
-
-  return PLAN_NAMES.flatMap((name) => {
-    const product = byName.get(name);
-    return product ? [product] : [];
-  });
+  return products.data
+    .filter((p) => p.metadata?.product === 'agentic')
+    .sort((a, b) => {
+      const aAmt = (a.default_price as Stripe.Price)?.unit_amount ?? 0;
+      const bAmt = (b.default_price as Stripe.Price)?.unit_amount ?? 0;
+      return aAmt - bAmt;
+    })
+    .slice(0, 3);
 }
 
 async function PlansList() {

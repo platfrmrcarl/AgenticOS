@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
-import { PLAN_NAMES, type StripePlan } from "@/lib/plans";
+import type { StripePlan } from "@/lib/plans";
 
 async function getPlans(): Promise<StripePlan[]> {
   const stripe = getStripe();
@@ -11,30 +11,27 @@ async function getPlans(): Promise<StripePlan[]> {
     expand: ["data.default_price"],
   });
 
-  const byName = new Map<string, Stripe.Product>();
-  for (const p of products.data) {
-    if (p.metadata?.product !== "agentic") continue;
-    if (!PLAN_NAMES.includes(p.name as (typeof PLAN_NAMES)[number])) continue;
-    if (!byName.has(p.name)) byName.set(p.name, p);
-  }
-
-  return PLAN_NAMES.flatMap((name) => {
-    const product = byName.get(name);
-    if (!product) return [];
-    const price = product.default_price as Stripe.Price | null;
-    const features = (product.marketing_features ?? [])
-      .map((f) => f.name)
-      .filter((n): n is string => Boolean(n));
-    return [
-      {
+  return products.data
+    .filter((p) => p.metadata?.product === "agentic")
+    .sort((a, b) => {
+      const aAmt = (a.default_price as Stripe.Price)?.unit_amount ?? 0;
+      const bAmt = (b.default_price as Stripe.Price)?.unit_amount ?? 0;
+      return aAmt - bAmt;
+    })
+    .slice(0, 3)
+    .map((product) => {
+      const price = product.default_price as Stripe.Price | null;
+      const features = (product.marketing_features ?? [])
+        .map((f) => f.name)
+        .filter((n): n is string => Boolean(n));
+      return {
         id: price?.id ?? product.id,
         name: product.name,
         price: (price?.unit_amount ?? 0) / 100,
         interval: price?.recurring?.interval ?? "month",
         features,
-      },
-    ];
-  });
+      };
+    });
 }
 
 // ─── AnimatedSwarm ────────────────────────────────────────────────────────────
