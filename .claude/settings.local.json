@@ -172,7 +172,12 @@
       "Bash(gcloud artifacts *)",
       "mcp__plugin_claude-mem_mcp-search__get_observations",
       "Bash(GIT_EDITOR=true git -C /home/carl/GitHub/platfrmr-starter-old rebase --continue)",
-      "Bash(gh issue *)"
+      "Bash(gh issue *)",
+      "Bash(pacman -Si woeusb-ng)",
+      "Bash(pacman -Si ventoy)",
+      "Bash(pacman -Si balena-etcher)",
+      "Bash(yay -Si woeusb-ng)",
+      "Bash(yay -Si ventoy-bin)"
     ]
   },
   "prefersReducedMotion": true

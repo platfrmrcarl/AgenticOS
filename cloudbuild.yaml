@@ -1,28 +1,18 @@
 steps:
-  # ── 0. Fetch git history for diff ──────────────────────────────────────────
-  - name: gcr.io/cloud-builders/git
-    id: git-history
-    entrypoint: bash
-    args:
-      - -c
-      - git fetch --unshallow 2>/dev/null || git fetch --depth=50 2>/dev/null || true
-
-  # ── 1. Detect which services changed ───────────────────────────────────────
+  # ── 1. Always build both services ──────────────────────────────────────────
+  # Previously this step diffed HEAD~1..HEAD to skip unchanged services. That
+  # silently lost rebuilds when a multi-commit push had service changes in an
+  # earlier commit and the tip touched neither agents/ nor web/. Buildx
+  # registry caching (--cache-from / --cache-to) keeps no-op rebuilds cheap,
+  # so we just mark both services as "changed" every run.
   - name: gcr.io/cloud-builders/git
     id: detect-changes
-    waitFor: [git-history]
     entrypoint: bash
     args:
       - -c
       - |
-        # 2>/dev/null intentional: HEAD~1 may not exist on first branch commit; fallback to git ls-files (builds all services)
-        git diff --name-only HEAD~1 HEAD 2>/dev/null > /workspace/changed.txt \
-          || git ls-files > /workspace/changed.txt
-        # If no git history (tarball upload), build everything
-        if [ ! -s /workspace/changed.txt ]; then
-          printf 'agents/placeholder\nweb/placeholder\n' > /workspace/changed.txt
-        fi
-        echo "=== Changed files ==="
+        printf 'agents/placeholder\nweb/placeholder\n' > /workspace/changed.txt
+        echo "=== Always building both services ==="
         cat /workspace/changed.txt
 
   # ── 2. Restore Next.js build cache from GCS ────────────────────────────────
