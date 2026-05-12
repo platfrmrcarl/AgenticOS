@@ -1,7 +1,19 @@
 import Link from "next/link";
 import type Stripe from "stripe";
+import {
+  BarChart3,
+  CalendarClock,
+  ClipboardList,
+  Headphones,
+  Receipt,
+  RefreshCw,
+  TrendingUp,
+  UserCheck,
+} from "lucide-react";
 import { getStripe } from "@/lib/stripe";
 import type { StripePlan } from "@/lib/plans";
+
+export const dynamic = "force-dynamic";
 
 async function getPlans(): Promise<StripePlan[]> {
   const stripe = getStripe();
@@ -361,22 +373,24 @@ export default async function HomePage() {
           </h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { title: "Invoice Automation", desc: "Generate, send, and follow up on invoices automatically." },
-              { title: "Meeting Summaries", desc: "AI-generated summaries and action items from every meeting." },
-              { title: "Lead Follow-up", desc: "Nurture leads with personalized, timely outreach." },
-              { title: "Reporting", desc: "Weekly and monthly reports delivered to your inbox." },
-              { title: "Smart Scheduling", desc: "Coordinate calendars and book meetings without back-and-forth." },
-              { title: "Customer Support", desc: "First-response handling and ticket routing at scale." },
-              { title: "Data Sync", desc: "Keep your tools in sync — no more copy-pasting between apps." },
-              { title: "Financial Reports", desc: "Cash flow, expenses, and forecasts compiled automatically." },
-            ].map((feature) => (
+              { title: "Invoice Automation", desc: "Generate, send, and follow up on invoices automatically.", Icon: Receipt },
+              { title: "Meeting Summaries", desc: "AI-generated summaries and action items from every meeting.", Icon: ClipboardList },
+              { title: "Lead Follow-up", desc: "Nurture leads with personalized, timely outreach.", Icon: UserCheck },
+              { title: "Reporting", desc: "Weekly and monthly reports delivered to your inbox.", Icon: BarChart3 },
+              { title: "Smart Scheduling", desc: "Coordinate calendars and book meetings without back-and-forth.", Icon: CalendarClock },
+              { title: "Customer Support", desc: "First-response handling and ticket routing at scale.", Icon: Headphones },
+              { title: "Data Sync", desc: "Keep your tools in sync — no more copy-pasting between apps.", Icon: RefreshCw },
+              { title: "Financial Reports", desc: "Cash flow, expenses, and forecasts compiled automatically.", Icon: TrendingUp },
+            ].map(({ title, desc, Icon }) => (
               <div
-                key={feature.title}
+                key={title}
                 className="bg-background rounded-xl p-6 border border-border"
               >
-                <div className="w-8 h-8 rounded-lg bg-primary/10 mb-3" />
-                <h3 className="font-semibold mb-1">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground">{feature.desc}</p>
+                <div className="w-8 h-8 rounded-lg bg-primary/10 mb-3 flex items-center justify-center text-primary">
+                  <Icon className="w-4 h-4" />
+                </div>
+                <h3 className="font-semibold mb-1">{title}</h3>
+                <p className="text-sm text-muted-foreground">{desc}</p>
               </div>
             ))}
           </div>

@@ -4,6 +4,8 @@ import { getStripe } from '@/lib/stripe';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
+export const dynamic = 'force-dynamic';
+
 async function getPlans() {
   const products = await getStripe().products.list({
     active: true,
