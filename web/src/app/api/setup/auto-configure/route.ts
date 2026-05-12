@@ -1,39 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
 import { getAgentsAuthHeader } from "@/lib/agents-auth";
 
-export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { id } = await params;
-  let message: string;
+  let role: string;
+  let vision: string;
   try {
-    ({ message } = await req.json());
+    ({ role, vision } = await req.json());
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const chatSession = await prisma.chatSession.findFirst({ where: { id, userId: session.user.id } });
-  if (!chatSession) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-  const messages = chatSession.messages as Array<{ role: string; content: string }>;
-  messages.push({ role: "user", content: message });
-  await prisma.chatSession.update({ where: { id }, data: { messages } });
+  if (!role?.trim() || !vision?.trim()) {
+    return NextResponse.json({ error: "role and vision are required" }, { status: 400 });
+  }
 
   const agentsUrl = process.env.AGENTS_SERVICE_URL ?? "http://localhost:8000";
   let upstream: Response;
   try {
     const authHeader = await getAgentsAuthHeader();
-    upstream = await fetch(`${agentsUrl}/run/agentic-os-guide`, {
+    upstream = await fetch(`${agentsUrl}/run/auto-configure`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "X-User-ID": session.user.id,
         ...authHeader,
       },
-      body: JSON.stringify({ session_id: id, message }),
+      body: JSON.stringify({ user_id: session.user.id, role, vision }),
     });
   } catch (err) {
     console.error("agents fetch failed:", err);

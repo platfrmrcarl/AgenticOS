@@ -66,6 +66,7 @@ model Skill {
   frequency       SkillFrequency @default(ON_DEMAND)
   dependencies    String?
   successCriteria String?
+  enabled         Boolean        @default(false)
   runs            SkillRun[]
   createdAt       DateTime       @default(now())
 }

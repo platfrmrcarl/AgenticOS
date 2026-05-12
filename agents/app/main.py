@@ -1,11 +1,9 @@
-import json
 import logging
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from app.models import RunRequest
-from app.session import session_store
-from app.agent import stream_agent_response
+from app.models import AutoConfigureRequest
+from app.auto_configure import stream_auto_configure
 
 logger = logging.getLogger(__name__)
 
@@ -25,53 +23,9 @@ async def health():
     return {"status": "ok"}
 
 
-@app.post("/sessions")
-async def create_session():
-    session_id = session_store.create()
-    return {"session_id": session_id}
-
-
-@app.get("/sessions/{session_id}")
-async def get_session(session_id: str):
-    messages = session_store.get_messages(session_id)
-    if messages is None:
-        raise HTTPException(status_code=404, detail="Session not found")
-    return {"session_id": session_id, "messages": messages}
-
-
-@app.delete("/sessions/{session_id}")
-async def delete_session(session_id: str):
-    session_store.delete(session_id)
-    return {"deleted": session_id}
-
-
-@app.post("/run/agentic-os-guide")
-async def run_guide(request: RunRequest):
-    messages = session_store.get_messages(request.session_id)
-    if messages is None:
-        session_store._sessions[request.session_id] = []
-        messages = []
-
-    session_store.add_message(
-        request.session_id, {"role": "user", "content": request.message}
+@app.post("/run/auto-configure")
+async def run_auto_configure(request: AutoConfigureRequest):
+    return StreamingResponse(
+        stream_auto_configure(request.role, request.vision),
+        media_type="text/event-stream",
     )
-    all_messages = session_store.get_messages(request.session_id)
-
-    async def generate():
-        full_response = ""
-        async for chunk in stream_agent_response(all_messages):
-            yield chunk
-            if chunk.startswith("data: ") and chunk.strip() != "data: [DONE]":
-                try:
-                    data = json.loads(chunk[6:])
-                    if data.get("type") == "text":
-                        full_response += data.get("content", "")
-                except Exception as exc:
-                    logger.warning("Failed to parse SSE chunk: %s", exc)
-        if full_response:
-            session_store.add_message(
-                request.session_id,
-                {"role": "assistant", "content": full_response},
-            )
-
-    return StreamingResponse(generate(), media_type="text/event-stream")
