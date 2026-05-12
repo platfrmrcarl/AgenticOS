@@ -10,7 +10,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
     <div className="min-h-screen bg-[#0a0a0a]">
       <nav className="border-b border-gray-800 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <span className="text-orange-500 font-mono text-sm font-bold">AgenticOS</span>
+          <span className="text-orange-500 font-mono text-sm font-bold">Agentic Operations</span>
           <Link href="/dashboard" className="text-gray-400 hover:text-white text-sm transition-colors">
             Dashboard
           </Link>

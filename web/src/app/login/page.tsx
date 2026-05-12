@@ -29,7 +29,7 @@ export default function LoginPage() {
     <main className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
       <div className="w-full max-w-sm">
         <div className="text-orange-500 font-mono text-xs tracking-widest uppercase mb-6">
-          AgenticOS
+          Agentic Operations
         </div>
         <h1 className="text-2xl font-bold text-white mb-8">Sign in</h1>
         <form onSubmit={handleSubmit} className="space-y-4">

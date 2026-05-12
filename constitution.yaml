@@ -1,0 +1,66 @@
+version: "1.0"
+mode: enhanced
+identity:
+  name: "AgenticOS"
+  description: "Standard governance for JavaScript / TypeScript project"
+rules:
+  - id: no-secrets
+    description: "Never expose API keys, tokens, or credentials"
+    severity: error
+    enforcement: both
+  - id: no-destructive-commands
+    description: "Block destructive shell commands (rm -rf /, sudo, etc.)"
+    severity: error
+    enforcement: hook
+  - id: confirm-external
+    description: "Require confirmation for network requests and git push"
+    severity: warning
+    enforcement: hook
+  - id: no-env-modification
+    description: "Do not modify .env or credential files"
+    severity: error
+    enforcement: hook
+permissions:
+  defaults:
+    unknown_tool: ask
+    unknown_path: deny
+  tools:
+    bash:
+      policy: restricted
+      deny_patterns:
+        - "rm\\s+-rf\\s+/"
+        - "sudo\\s+"
+        - "curl.*\\|.*sh"
+      ask_patterns:
+        - "git\\s+push"
+        - "npm\\s+publish"
+    read:
+      policy: allow
+    write:
+      policy: restricted
+      deny_paths: [".env", ".env.*", "credentials.*", "*.pem", "*.key"]
+      ask_paths: ["package.json", "pyproject.toml", "Dockerfile"]
+    edit:
+      policy: restricted
+      deny_paths: [".env", "credentials.*"]
+risk:
+  classifier: rules
+  thresholds:
+    low: allow
+    medium: allow
+    high: ask
+    critical: deny
+  custom_rules:
+    - pattern: "git\\s+push\\b.*(--force|--force-with-lease|-f\\b)"
+      level: critical
+      reason: "git push --force — explicitly denied by constitution"
+      tool: "bash"
+    - pattern: "git\\s+reset\\s+--hard"
+      level: critical
+      reason: "git reset --hard — explicitly denied by constitution"
+      tool: "bash"
+hooks:
+  profile: standard
+audit:
+  enabled: true
+  format: jsonl

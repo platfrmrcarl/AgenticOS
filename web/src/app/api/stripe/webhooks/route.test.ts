@@ -32,7 +32,7 @@ const mockGetStripe = vi.mocked(getStripe);
 const mockPrisma = vi.mocked(prisma, true);
 
 function makeRequest(body = "raw-body"): NextRequest {
-  return new NextRequest("http://localhost/api/webhooks/stripe", {
+  return new NextRequest("http://localhost/api/stripe/webhooks", {
     method: "POST",
     body,
   });
@@ -55,7 +55,7 @@ beforeEach(() => {
   (mockHeaders as any).mockResolvedValue(new Map([["stripe-signature", "test-sig"]]));
 });
 
-describe("POST /api/webhooks/stripe", () => {
+describe("POST /api/stripe/webhooks", () => {
   it("returns 400 when stripe-signature header is missing", async () => {
     (mockHeaders as any).mockResolvedValue(new Map());
     const res = await POST(makeRequest());

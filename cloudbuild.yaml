@@ -135,6 +135,7 @@ steps:
   - name: gcr.io/cloud-builders/docker
     id: build-web
     waitFor: [setup-buildx, restore-web-cache]
+    secretEnv: ['NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY']
     entrypoint: bash
     args:
       - -c
@@ -147,7 +148,7 @@ steps:
           --cache-from type=registry,ref=$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/agenticos:buildcache \
           --cache-to type=registry,ref=$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/agenticos:buildcache,mode=max \
           --build-arg=AUTH_URL=$_AUTH_URL \
-          --build-arg=NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=$_STRIPE_PUBLISHABLE_KEY \
+          --build-arg=NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=$$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY \
           --target runner \
           --push \
           web/
@@ -155,6 +156,7 @@ steps:
   - name: gcr.io/cloud-builders/docker
     id: save-web-cache-extract
     waitFor: [build-web]
+    secretEnv: ['NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY']
     entrypoint: bash
     args:
       - -c
@@ -166,7 +168,7 @@ steps:
           --output type=local,dest=/workspace/next-cache-out \
           --cache-from type=registry,ref=$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/agenticos:buildcache \
           --build-arg=AUTH_URL=$_AUTH_URL \
-          --build-arg=NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=$_STRIPE_PUBLISHABLE_KEY \
+          --build-arg=NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=$$NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY \
           web/ || true
 
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
@@ -221,12 +223,13 @@ substitutions:
   _AUTH_URL: https://www.agenticoperations.net
   _AGENTS_SERVICE_URL: "https://agenticos-agents-rpwpeh4sqa-ue.a.run.app"
   _AGENTS_AUDIENCE: "https://agenticos-agents-rpwpeh4sqa-ue.a.run.app"
-  _STRIPE_PUBLISHABLE_KEY: "pk_test_51NzWucH8CSujFGCpjcQzisUnaVYBOltGISVroVi0yvUQEucmJLSOIAyE5XYJ7HgXGDO3dshVVADaTU0R3F81HQRE00JyFFTasq"
 
 availableSecrets:
   secretManager:
   - versionName: projects/$PROJECT_ID/secrets/database-url-web/versions/latest
     env: DATABASE_URL
+  - versionName: projects/$PROJECT_ID/secrets/stripe-publishable-key/versions/latest
+    env: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 
 options:
   logging: CLOUD_LOGGING_ONLY

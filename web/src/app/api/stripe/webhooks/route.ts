@@ -53,6 +53,43 @@ export async function POST(req: NextRequest) {
           },
         });
       }
+    } else if (
+      event.type === "customer.subscription.created" ||
+      event.type === "customer.subscription.updated"
+    ) {
+      const subscription = event.data.object as Stripe.Subscription;
+      const userId = subscription.metadata?.userId;
+      const active = subscription.status === "active" || subscription.status === "trialing";
+      if (userId) {
+        await prisma.user.update({
+          where: { id: userId },
+          data: {
+            isSubscribed: active,
+            stripeSubscriptionId: subscription.id,
+            subscriptionPlan: subscription.items.data[0]?.price.id ?? null,
+          },
+        });
+      }
+    } else if (event.type === "invoice.payment_succeeded") {
+      const invoice = event.data.object as Stripe.Invoice & { subscription?: string | Stripe.Subscription | null };
+      const subId =
+        typeof invoice.subscription === "string"
+          ? invoice.subscription
+          : invoice.subscription?.id ?? null;
+      if (subId) {
+        const sub = await getStripe().subscriptions.retrieve(subId);
+        const userId = sub.metadata?.userId;
+        if (userId) {
+          await prisma.user.update({
+            where: { id: userId },
+            data: {
+              isSubscribed: true,
+              stripeSubscriptionId: sub.id,
+              subscriptionPlan: sub.items.data[0]?.price.id ?? null,
+            },
+          });
+        }
+      }
     } else if (event.type === "customer.subscription.deleted") {
       const subscription = event.data.object as Stripe.Subscription;
       await prisma.user.updateMany({

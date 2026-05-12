@@ -196,7 +196,7 @@ export default async function HomePage() {
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between relative">
-          <span className="text-xl font-bold text-primary">AgenticOS</span>
+          <span className="text-xl font-bold text-primary">Agentic Operations</span>
           <div className="hidden md:flex items-center gap-6 absolute left-1/2 -translate-x-1/2">
             <Link
               href="#how-it-works"
@@ -235,7 +235,7 @@ export default async function HomePage() {
             when you need to step in.
           </h1>
           <p className="mt-6 text-xl text-muted-foreground max-w-2xl">
-            AgenticOS creates custom agentic workflows that handle the
+            Agentic Operations creates custom agentic workflows that handle the
             repetitive work so you can focus on what matters.
           </p>
           <div className="mt-10 w-full max-w-sm">
@@ -271,7 +271,18 @@ export default async function HomePage() {
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                title: "Small Business",
+                title: "Startups",
+                emoji: "🚀",
+                items: [
+                  "User onboarding sequences",
+                  "Churn detection & outreach",
+                  "Investor update drafts",
+                  "Support ticket triage",
+                  "Feature usage analytics",
+                ],
+              },
+              {
+                title: "Small Businesses",
                 emoji: "🏪",
                 items: [
                   "Invoice generation & follow-up",
@@ -282,7 +293,7 @@ export default async function HomePage() {
                 ],
               },
               {
-                title: "Medium Business",
+                title: "Medium Businesses",
                 emoji: "🏢",
                 items: [
                   "Weekly performance reports",
@@ -290,17 +301,6 @@ export default async function HomePage() {
                   "Employee onboarding flows",
                   "Contract renewal reminders",
                   "Cross-system data sync",
-                ],
-              },
-              {
-                title: "Startups",
-                emoji: "🚀",
-                items: [
-                  "User onboarding sequences",
-                  "Churn detection & outreach",
-                  "Investor update drafts",
-                  "Support ticket triage",
-                  "Feature usage analytics",
                 ],
               },
             ].map((card) => (
@@ -335,7 +335,7 @@ export default async function HomePage() {
               {
                 step: "01",
                 title: "Describe",
-                desc: "Tell AgenticOS what you want to automate in plain English. No technical knowledge required.",
+                desc: "Tell Agentic Operations what you want to automate in plain English. No technical knowledge required.",
               },
               {
                 step: "02",
@@ -451,7 +451,7 @@ export default async function HomePage() {
           </h2>
           <p className="text-primary-foreground/80 mb-8 text-lg">
             Join hundreds of businesses that have eliminated repetitive work with
-            AgenticOS.
+            Agentic Operations.
           </p>
           <Link
             href="#pricing"
@@ -466,7 +466,7 @@ export default async function HomePage() {
       <footer className="py-8 px-4 border-t border-border">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <span className="text-sm text-muted-foreground">
-            © 2026 AgenticOS. All rights reserved.
+            © 2026 Agentic Operations. All rights reserved.
           </span>
           <div className="flex gap-6 text-sm text-muted-foreground">
             <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>

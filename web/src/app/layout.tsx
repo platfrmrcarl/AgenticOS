@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AgenticOS",
+  title: "Agentic Operations",
   description: "Automate your business. Stop running in the past.",
 };
 
