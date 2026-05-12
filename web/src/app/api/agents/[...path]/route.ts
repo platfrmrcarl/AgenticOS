@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
+import { getAgentsAuthHeader } from "@/lib/agents-auth";
 
 const AGENTS_URL = process.env.AGENTS_SERVICE_URL ?? "http://localhost:8000";
 
@@ -13,7 +14,12 @@ async function proxy(
 
   const headers = new Headers(req.headers);
   headers.delete("host");
+  headers.delete("authorization");
+  headers.delete("cookie");
   if (session?.user?.id) headers.set("X-User-ID", session.user.id);
+  for (const [k, v] of Object.entries(await getAgentsAuthHeader())) {
+    headers.set(k, v);
+  }
 
   const body =
     req.method !== "GET" && req.method !== "HEAD"

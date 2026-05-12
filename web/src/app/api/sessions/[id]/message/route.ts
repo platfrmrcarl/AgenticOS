@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getAgentsAuthHeader } from "@/lib/agents-auth";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -24,16 +25,24 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const agentsUrl = process.env.AGENTS_SERVICE_URL ?? "http://localhost:8000";
   let upstream: Response;
   try {
+    const authHeader = await getAgentsAuthHeader();
     upstream = await fetch(`${agentsUrl}/run/agentic-os-guide`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "X-User-ID": session.user.id },
+      headers: {
+        "Content-Type": "application/json",
+        "X-User-ID": session.user.id,
+        ...authHeader,
+      },
       body: JSON.stringify({ session_id: id, message }),
     });
-  } catch {
+  } catch (err) {
+    console.error("agents fetch failed:", err);
     return NextResponse.json({ error: "Agents service unavailable" }, { status: 502 });
   }
 
   if (!upstream.ok || !upstream.body) {
+    const detail = upstream.body ? await upstream.text().catch(() => "") : "";
+    console.error("agents upstream error:", upstream.status, detail.slice(0, 500));
     return NextResponse.json({ error: "Upstream error" }, { status: 502 });
   }
 
