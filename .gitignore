@@ -28,3 +28,8 @@ dist/
 .DS_Store
 *.log
 .turbo/
+
+# AutoHarness / build artifacts
+.autoharness/
+audit.jsonl
+*.tsbuildinfo

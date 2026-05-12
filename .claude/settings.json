@@ -109,9 +109,14 @@
         ]
       },
       {
-        "type": "command",
-        "command": "autoharness check --stdin --constitution /home/carl/GitHub/AgenticOS/constitution.yaml --format hook",
-        "description": "AutoHarness governance check \u2014 risk classification, permission enforcement, secret scanning"
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /home/carl/GitHub/AgenticOS && autoharness check --stdin --constitution /home/carl/GitHub/AgenticOS/constitution.yaml --format hook",
+            "description": "AutoHarness governance check \u2014 risk classification, permission enforcement, secret scanning"
+          }
+        ]
       }
     ]
   },
