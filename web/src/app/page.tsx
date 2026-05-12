@@ -222,6 +222,12 @@ export default async function HomePage() {
             >
               Pricing
             </Link>
+            <Link
+              href="/wiki"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Wiki
+            </Link>
           </div>
           <Link
             href="/api/auth/signin"

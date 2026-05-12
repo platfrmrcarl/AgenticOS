@@ -21,6 +21,9 @@ export default async function ProtectedLayout({ children }: { children: React.Re
           <Link href="/skills" className="text-muted-foreground hover:text-foreground text-sm transition-colors">
             Skills
           </Link>
+          <Link href="/wiki" className="text-muted-foreground hover:text-foreground text-sm transition-colors">
+            Wiki
+          </Link>
         </div>
         <UserMenu
           name={session.user.name}

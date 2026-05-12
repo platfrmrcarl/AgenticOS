@@ -78,6 +78,14 @@ export function UserMenu({ name, email, image }: UserMenuProps) {
           >
             Account
           </Link>
+          <Link
+            role="menuitem"
+            href="/wiki"
+            onClick={() => setOpen(false)}
+            className="block px-4 py-2 text-sm text-foreground hover:bg-muted"
+          >
+            Wiki
+          </Link>
           <button
             role="menuitem"
             type="button"
